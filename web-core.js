@@ -11,7 +11,7 @@ let cfg;try{cfg=JSON.parse(localStorage.getItem(CFG)||sessionStorage.getItem(CFG
  if(cfg.owner&&cfg.repo&&cfg.token){localStorage.setItem(CFG,JSON.stringify(cfg));sessionStorage.removeItem(CFG)}
 let sha=null,dirty=localStorage.getItem(DIRTY)==='1',saving=false,saveTimer=null,conflict=false;
  let retryTimer=null, polling=false;
- const RETRY_MS=30000, POLL_MS=60000;
+ const RETRY_MS=15000, POLL_MS=15000;
 const localSave=()=>localStorage.setItem(KEY,JSON.stringify(data));
 const persist=()=>{dirty=true;localStorage.setItem(DIRTY,'1');localSave();syncStatus(config()?'místní změny čekají na odeslání':'místní změny, GitHub nepřipojen',config()?'info':'error');if(config()){clearTimeout(saveTimer);saveTimer=setTimeout(()=>autoSave().catch(e=>warn(e.message)),1400)}};
 const syncStatus=(m,kind='info')=>{let el=document.getElementById('euro-sync-status');if(el){el.textContent='GitHub: '+m;el.style.color=kind==='error'?'#ffbf69':kind==='ok'?'#9be3a5':'#8bb7f0'}};
