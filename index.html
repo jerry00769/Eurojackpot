@@ -906,7 +906,7 @@
                     try {
                         const parsed = JSON.parse(storedHistory);
                         this.history = parsed.history || [];
-                        this.currentIndex = parsed.currentIndex || -1;
+                        this.currentIndex = parsed.currentIndex ?? -1;
                         this.updateButtonState();
                     } catch (e) {
                         this.clear();
