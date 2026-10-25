@@ -1927,6 +1927,13 @@
             toggle.setAttribute('aria-expanded', String(opened));
             toggle.setAttribute('aria-label', opened ? 'Skrýt tlačítka' : 'Zobrazit tlačítka');
         });
+        // Po stisknutí libovolné akce zavřít menu, bez změny její funkce.
+        actions.addEventListener('click', (event) => {
+            if (!event.target.closest('button') || !actions.classList.contains('is-open')) return;
+            actions.classList.remove('is-open');
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.setAttribute('aria-label', 'Zobrazit tlačítka');
+        });
     })();
     </script>
 </body>
