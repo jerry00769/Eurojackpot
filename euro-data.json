@@ -12015,229 +12015,13 @@
   ],
   "bets": [
     {
-      "Datum_sazky": "2026-07-17",
-      "Kombinace": "11,17,20,34,49,3,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 1,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-07-17",
-      "Kombinace": "11,14,18,20,35,1,8",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 2,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-07-17",
-      "Kombinace": "1,8,34,39,49,3,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 3,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-07-17",
-      "Kombinace": "7,20,21,34,41,3,4",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": "21 | ",
-      "Poradi": 4,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-07-17",
-      "Kombinace": "7,11,35,41,49,5,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 5,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-07-17",
-      "Kombinace": "1,9,35,41,46,5,8",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 6,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-08-14",
-      "Kombinace": "1,16,20,23,37,5,6",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | 6",
-      "Poradi": 7,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-08-14",
-      "Kombinace": "13,16,18,20,49,3,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | 3",
-      "Poradi": 8,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-08-14",
-      "Kombinace": "1,17,18,22,47,1,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 9,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-08-14",
-      "Kombinace": "17,20,21,30,46,3,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": "30 | 3",
-      "Poradi": 10,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-08-14",
-      "Kombinace": "4,17,30,37,39,3,6",
-      "Cena": "0",
-      "Vyhodnoceni": "Výhra (11. pořadí)",
-      "Shodna_cisla": "30 | 3,6",
-      "Poradi": 11,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-08-14",
-      "Kombinace": "1,15,18,21,49,4,8",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 12,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-18",
-      "Kombinace": "4,17,23,30,39,7,8",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": "4,30 | ",
-      "Poradi": 13,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-18",
-      "Kombinace": "9,14,16,34,35,3,6",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 14,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-18",
-      "Kombinace": "6,8,17,23,35,3,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | 5",
-      "Poradi": 15,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-18",
-      "Kombinace": "6,11,16,17,37,3,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 16,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-18",
-      "Kombinace": "6,11,23,39,44,5,8",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | 5",
-      "Poradi": 17,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-18",
-      "Kombinace": "16,30,33,35,45,5,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Výhra (12. pořadí)",
-      "Shodna_cisla": "30,33 | 5",
-      "Poradi": 18,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-22",
-      "Kombinace": "2,14,30,45,49,3,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | 5",
-      "Poradi": 19,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-22",
-      "Kombinace": "2,21,23,34,40,4,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Výhra (11. pořadí)",
-      "Shodna_cisla": "23 | 4,5",
-      "Poradi": 20,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-22",
-      "Kombinace": "13,16,30,37,45,3,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 21,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-22",
-      "Kombinace": "4,25,30,41,45,3,4",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | 4",
-      "Poradi": 22,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-22",
-      "Kombinace": "4,13,19,34,43,5,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | 5",
-      "Poradi": 23,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-09-22",
-      "Kombinace": "3,10,34,35,43,7,8",
-      "Cena": "0",
-      "Vyhodnoceni": "Prohra",
-      "Shodna_cisla": " | ",
-      "Poradi": 24,
-      "Metoda": "Python AI metoda"
-    },
-    {
       "Datum_sazky": "2026-10-09",
       "Kombinace": "11,17,20,30,34,5,10",
       "Cena": "0",
       "Vyhodnoceni": "Prohra",
       "Shodna_cisla": " | 10",
-      "Poradi": 25,
-      "Metoda": "Python AI metoda"
+      "Metoda": "Python AI metoda",
+      "Poradi": 1
     },
     {
       "Datum_sazky": "2026-10-09",
@@ -12245,8 +12029,8 @@
       "Cena": "0",
       "Vyhodnoceni": "Prohra",
       "Shodna_cisla": " | ",
-      "Poradi": 26,
-      "Metoda": "Python AI metoda"
+      "Metoda": "Python AI metoda",
+      "Poradi": 2
     },
     {
       "Datum_sazky": "2026-10-09",
@@ -12254,8 +12038,8 @@
       "Cena": "0",
       "Vyhodnoceni": "Prohra",
       "Shodna_cisla": "41 | ",
-      "Poradi": 27,
-      "Metoda": "Python AI metoda"
+      "Metoda": "Python AI metoda",
+      "Poradi": 3
     },
     {
       "Datum_sazky": "2026-10-09",
@@ -12263,8 +12047,8 @@
       "Cena": "0",
       "Vyhodnoceni": "Prohra",
       "Shodna_cisla": "18 | ",
-      "Poradi": 28,
-      "Metoda": "Python AI metoda"
+      "Metoda": "Python AI metoda",
+      "Poradi": 4
     },
     {
       "Datum_sazky": "2026-10-09",
@@ -12272,8 +12056,8 @@
       "Cena": "0",
       "Vyhodnoceni": "Prohra",
       "Shodna_cisla": " | 7",
-      "Poradi": 29,
-      "Metoda": "Python AI metoda"
+      "Metoda": "Python AI metoda",
+      "Poradi": 5
     },
     {
       "Datum_sazky": "2026-10-09",
@@ -12281,56 +12065,224 @@
       "Cena": "0",
       "Vyhodnoceni": "Prohra",
       "Shodna_cisla": " | ",
-      "Poradi": 30,
-      "Metoda": "Python AI metoda"
-    },
-    {
-      "Datum_sazky": "2026-10-27",
-      "Kombinace": "16,30,35,41,45,4,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Nevyhodnoceno",
-      "Shodna_cisla": "",
-      "Poradi": 1
-    },
-    {
-      "Datum_sazky": "2026-10-27",
-      "Kombinace": "20,21,30,43,49,7,10",
-      "Cena": "0",
-      "Vyhodnoceni": "Nevyhodnoceno",
-      "Shodna_cisla": "",
-      "Poradi": 2
-    },
-    {
-      "Datum_sazky": "2026-10-27",
-      "Kombinace": "11,17,23,35,41,2,5",
-      "Cena": "0",
-      "Vyhodnoceni": "Nevyhodnoceno",
-      "Shodna_cisla": "",
-      "Poradi": 3
-    },
-    {
-      "Datum_sazky": "2026-10-27",
-      "Kombinace": "1,4,20,21,34,5,6",
-      "Cena": "0",
-      "Vyhodnoceni": "Nevyhodnoceno",
-      "Shodna_cisla": "",
-      "Poradi": 4
-    },
-    {
-      "Datum_sazky": "2026-10-27",
-      "Kombinace": "13,16,21,30,34,6,7",
-      "Cena": "0",
-      "Vyhodnoceni": "Nevyhodnoceno",
-      "Shodna_cisla": "",
-      "Poradi": 5
-    },
-    {
-      "Datum_sazky": "2026-10-27",
-      "Kombinace": "16,17,18,34,35,8,9",
-      "Cena": "0",
-      "Vyhodnoceni": "Nevyhodnoceno",
-      "Shodna_cisla": "",
+      "Metoda": "Python AI metoda",
       "Poradi": 6
+    },
+    {
+      "Datum_sazky": "2026-09-22",
+      "Kombinace": "2,14,30,45,49,3,5",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | 5",
+      "Metoda": "Python AI metoda",
+      "Poradi": 7
+    },
+    {
+      "Datum_sazky": "2026-09-22",
+      "Kombinace": "2,21,23,34,40,4,5",
+      "Cena": "0",
+      "Vyhodnoceni": "Výhra (11. pořadí)",
+      "Shodna_cisla": "23 | 4,5",
+      "Metoda": "Python AI metoda",
+      "Poradi": 8
+    },
+    {
+      "Datum_sazky": "2026-09-22",
+      "Kombinace": "13,16,30,37,45,3,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 9
+    },
+    {
+      "Datum_sazky": "2026-09-22",
+      "Kombinace": "4,25,30,41,45,3,4",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | 4",
+      "Metoda": "Python AI metoda",
+      "Poradi": 10
+    },
+    {
+      "Datum_sazky": "2026-09-22",
+      "Kombinace": "4,13,19,34,43,5,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | 5",
+      "Metoda": "Python AI metoda",
+      "Poradi": 11
+    },
+    {
+      "Datum_sazky": "2026-09-22",
+      "Kombinace": "3,10,34,35,43,7,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 12
+    },
+    {
+      "Datum_sazky": "2026-09-18",
+      "Kombinace": "4,17,23,30,39,7,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": "4,30 | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 13
+    },
+    {
+      "Datum_sazky": "2026-09-18",
+      "Kombinace": "9,14,16,34,35,3,6",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 14
+    },
+    {
+      "Datum_sazky": "2026-09-18",
+      "Kombinace": "6,8,17,23,35,3,5",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | 5",
+      "Metoda": "Python AI metoda",
+      "Poradi": 15
+    },
+    {
+      "Datum_sazky": "2026-09-18",
+      "Kombinace": "6,11,16,17,37,3,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 16
+    },
+    {
+      "Datum_sazky": "2026-09-18",
+      "Kombinace": "6,11,23,39,44,5,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | 5",
+      "Metoda": "Python AI metoda",
+      "Poradi": 17
+    },
+    {
+      "Datum_sazky": "2026-09-18",
+      "Kombinace": "16,30,33,35,45,5,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Výhra (12. pořadí)",
+      "Shodna_cisla": "30,33 | 5",
+      "Metoda": "Python AI metoda",
+      "Poradi": 18
+    },
+    {
+      "Datum_sazky": "2026-08-14",
+      "Kombinace": "1,16,20,23,37,5,6",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | 6",
+      "Metoda": "Python AI metoda",
+      "Poradi": 19
+    },
+    {
+      "Datum_sazky": "2026-08-14",
+      "Kombinace": "13,16,18,20,49,3,5",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | 3",
+      "Metoda": "Python AI metoda",
+      "Poradi": 20
+    },
+    {
+      "Datum_sazky": "2026-08-14",
+      "Kombinace": "1,17,18,22,47,1,5",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 21
+    },
+    {
+      "Datum_sazky": "2026-08-14",
+      "Kombinace": "17,20,21,30,46,3,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": "30 | 3",
+      "Metoda": "Python AI metoda",
+      "Poradi": 22
+    },
+    {
+      "Datum_sazky": "2026-08-14",
+      "Kombinace": "4,17,30,37,39,3,6",
+      "Cena": "0",
+      "Vyhodnoceni": "Výhra (11. pořadí)",
+      "Shodna_cisla": "30 | 3,6",
+      "Metoda": "Python AI metoda",
+      "Poradi": 23
+    },
+    {
+      "Datum_sazky": "2026-08-14",
+      "Kombinace": "1,15,18,21,49,4,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 24
+    },
+    {
+      "Datum_sazky": "2026-07-17",
+      "Kombinace": "11,17,20,34,49,3,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 25
+    },
+    {
+      "Datum_sazky": "2026-07-17",
+      "Kombinace": "11,14,18,20,35,1,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 26
+    },
+    {
+      "Datum_sazky": "2026-07-17",
+      "Kombinace": "1,8,34,39,49,3,5",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 27
+    },
+    {
+      "Datum_sazky": "2026-07-17",
+      "Kombinace": "7,20,21,34,41,3,4",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": "21 | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 28
+    },
+    {
+      "Datum_sazky": "2026-07-17",
+      "Kombinace": "7,11,35,41,49,5,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 29
+    },
+    {
+      "Datum_sazky": "2026-07-17",
+      "Kombinace": "1,9,35,41,46,5,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Prohra",
+      "Shodna_cisla": " | ",
+      "Metoda": "Python AI metoda",
+      "Poradi": 30
     }
   ],
   "predictions": [
