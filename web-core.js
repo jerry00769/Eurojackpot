@@ -14,7 +14,21 @@ let sha=null,dirty=localStorage.getItem(DIRTY)==='1',saving=false,saveTimer=null
  const RETRY_MS=15000, POLL_MS=15000;
 const localSave=()=>localStorage.setItem(KEY,JSON.stringify(data));
 const persist=()=>{revision++;dirty=true;localStorage.setItem(DIRTY,'1');localSave();syncStatus(config()?'místní změny čekají na odeslání':'místní změny, GitHub nepřipojen',config()?'info':'error');if(config()){clearTimeout(saveTimer);saveTimer=setTimeout(()=>autoSave().catch(e=>warn(e.message)),1400)}};
-const syncStatus=(m,kind='info')=>{let el=document.getElementById('euro-sync-status');if(el){el.textContent='GitHub: '+m;el.style.color=kind==='error'?'#ffbf69':kind==='ok'?'#9be3a5':'#8bb7f0'}};
+const syncStatus=(m,kind='info')=>{
+ const color=kind==='error'?'#ffbf69':kind==='ok'?'#9be3a5':'#8bb7f0';
+ let el=document.getElementById('euro-sync-status');
+ if(el){el.textContent='GitHub: '+m;el.style.color=color}
+ let badge=document.getElementById('euro-sync-indicator');
+ if(!badge&&document.body){
+  badge=document.createElement('button');badge.id='euro-sync-indicator';badge.type='button';
+  badge.title='Kliknutím otevřít nastavení synchronizace';
+  badge.setAttribute('aria-label','Stav synchronizace GitHubu – otevřít nastavení');
+  badge.style.cssText='position:fixed;bottom:12px;left:12px;z-index:950;background:#1a2a43;border:1px solid #334e6e;border-radius:8px;padding:8px 12px;color:#eef2f5;font:500 12px Montserrat,Arial,sans-serif;box-shadow:0 3px 10px #0006;max-width:min(350px,calc(100vw - 24px));white-space:normal;text-align:left;cursor:pointer;';
+  badge.onclick=()=>{const panel=document.querySelector('.renta-settings');if(panel)panel.open=true};
+  document.body.appendChild(badge);
+ }
+ if(badge){badge.textContent=(kind==='ok'?'✓ ':kind==='error'?'⚠ ':'↻ ')+m;badge.style.color=color;badge.title='GitHub: '+m+' · Kliknutím otevřít nastavení'}
+};
  const warn=m=>{let el=document.getElementById('renta-sync-warning');if(el)el.textContent='⚠ '+m;syncStatus(m,'error');console.warn(m)};
 const config=()=>cfg.owner&&cfg.repo&&cfg.token;
 const sortedBets=()=>[...data.bets].sort((a,b)=>date(b.Datum_sazky).localeCompare(date(a.Datum_sazky))||(+a.Poradi||0)-(+b.Poradi||0));
