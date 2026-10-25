@@ -760,6 +760,232 @@
                 justify-content: center;
             }
         }
+        /* Menší mezera mezi kombinacemi a historií na PC. */
+        @media (min-width: 901px) {
+            .content-sections { gap: 0; }
+        }
+        /* Sjednocené těsnější odsazení historie na PC, tabletu i mobilu. */
+        .content-sections { gap: 0; }
+        #history-section-container { margin-top: -12px; }
+        /* Bez vnějšího rámu a podbarvení u predikcí a historie. */
+        .content-sections > .section {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            padding-left: 0;
+            padding-right: 0;
+        }
+        /* Mobil: karty historie stejně široké a vystředěné jako kombinace. */
+        @media (max-width: 650px) {
+            #history-section-container .table-container {
+                width: 100%;
+                max-width: 320px;
+                margin-left: auto;
+                margin-right: auto;
+                box-sizing: border-box;
+            }
+            #staked-history-table tbody tr {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        }
+        /* Finální doladění: neprůhledný panel nad obsahem stránky. */
+        .renta-settings {
+            background-color: #0d1e34 !important;
+            border: 1px solid #334e6e !important;
+            border-left: 0 !important;
+            isolation: isolate;
+            z-index: 5000 !important;
+        }
+        .renta-settings[open] {
+            background-color: #0d1e34 !important;
+            box-shadow: 8px 10px 35px rgba(0,0,0,.5) !important;
+        }
+        /* Mobil: nadpis, oddělovací čára a karty mají stejnou šířku. */
+        @media (max-width: 650px) {
+            #history-section-container .history-header {
+                width: 100%;
+                max-width: 320px;
+                box-sizing: border-box;
+                margin-left: auto;
+                margin-right: auto;
+                align-items: center;
+                text-align: center;
+            }
+            #history-section-container .history-title-group {
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+            }
+            #history-section-container .table-container {
+                max-width: 320px;
+                scrollbar-width: thin;
+            }
+        }
+
+        /* Tablet a mobil: zoom tlacitka skryta, na PC zustavaji. */
+        @media (max-width: 900px) {
+            .section-header .size-controls { display: none !important; }
+        }
+
+        /* Mobil: centrovaný nadpis predikcí, bez ovládání zoomu. */
+        @media (max-width: 650px) {
+            .section-header:has(#zoom-out-btn) {
+                justify-content: center;
+                position: relative;
+                text-align: center;
+            }
+            .section-header:has(#zoom-out-btn) .section-title {
+                width: 100%;
+                text-align: center;
+                font-size: 1.08em;
+                line-height: 1.4;
+            }
+            .section-header .size-controls { display: none !important; }
+            /* Posuvník uvnitř hranice karet, subtilní jako na PC. */
+            #history-section-container .table-container {
+                width: 100%;
+                max-width: 320px;
+                padding-right: 0;
+                overflow-y: auto;
+                overflow-x: hidden;
+                scrollbar-width: thin;
+                scrollbar-color: #334e6e #1a2a43;
+            }
+            #history-section-container .table-container::-webkit-scrollbar { width: 8px; }
+            #history-section-container .table-container::-webkit-scrollbar-track { background: #1a2a43; }
+            #history-section-container .table-container::-webkit-scrollbar-thumb {
+                background-color: #334e6e;
+                border: 2px solid #1a2a43;
+                border-radius: 4px;
+            }
+            #staked-history-table tbody { padding-right: 2px; }
+        }
+
+        /* Hamburger nabidka akci: pouze mobil, vodorovne uprostred. */
+        .lottery-action-buttons { display: contents; }
+        #mobile-actions-toggle { display: none; }
+        @media (max-width: 600px) {
+            #mobile-actions-toggle {
+                display: flex; align-items: center; justify-content: center;
+                width: 48px; height: 38px; padding: 7px;
+                margin: 2px auto 0; background: #334e6e;
+                border: 1px solid #48617f; border-radius: 9px;
+                box-shadow: none;
+            }
+            #mobile-actions-toggle .hamburger-lines { display: flex; flex-direction: column; gap: 4px; }
+            #mobile-actions-toggle .hamburger-lines i { display: block; width: 21px; height: 2px; background: #eef2f5; border-radius: 2px; }
+            .header-section .top-inputs .lottery-action-buttons {
+                display: flex; flex-direction: column; align-items: center;
+                width: 100%; gap: 7px;
+                max-height: 0; opacity: 0; visibility: hidden;
+                overflow: hidden; pointer-events: none;
+                transition: max-height .3s ease, opacity .25s ease, visibility .3s;
+            }
+            .header-section .top-inputs .lottery-action-buttons.is-open {
+                max-height: 180px; opacity: 1; visibility: visible; pointer-events: auto;
+            }
+            .header-section .top-inputs .lottery-action-buttons > button {
+                display: block; width: min(100%,240px); min-height: 36px;
+                padding: 8px 10px; font-size: .78em; line-height: 1.25;
+                white-space: normal; margin: 0;
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .lottery-action-buttons { transition: none !important; }
+        }
+
+        /* Mobil: plovouci nepruhledne menu prekryva kombinace, neposouva obsah. */
+        @media (max-width: 600px) {
+            .header-section { z-index: 100 !important; overflow: visible; }
+            .header-section .top-inputs { position: relative; overflow: visible; }
+            #mobile-actions-toggle { width: auto; min-width: 105px; gap: 10px; padding: 7px 15px; font-weight: 500; }
+            .header-section .top-inputs .lottery-action-buttons {
+                position: absolute; top: calc(100% + 8px); left: 50%;
+                transform: translate(-50%, -8px);
+                z-index: 110; width: min(320px, calc(100vw - 32px));
+                box-sizing: border-box; padding: 0 14px;
+                background: #0d1e34; border: 1px solid #334e6e;
+                border-radius: 11px; box-shadow: 0 12px 30px rgba(0,0,0,.45);
+                max-height: 0; opacity: 0; visibility: hidden;
+                overflow: hidden; pointer-events: none;
+                transition: max-height .28s ease, opacity .22s ease, transform .28s ease, padding .28s ease, visibility .28s;
+            }
+            .header-section .top-inputs .lottery-action-buttons.is-open {
+                max-height: 240px; padding: 15px 14px;
+                transform: translate(-50%, 0); opacity: 1; visibility: visible; pointer-events: auto;
+            }
+            .header-section .top-inputs .lottery-action-buttons > button { width: 100%; }
+        }
+    
+        /* Mobil: Menu zarovnane s levym okrajem karet, panel ve stejne sirce. */
+        @media (max-width: 600px) {
+            .header-section .top-inputs #mobile-actions-toggle {
+                align-self: flex-start;
+                margin: 2px 0 0 max(0px, calc((100% - 320px) / 2));
+                background: #0d1e34;
+                border: 1px solid #334e6e;
+                border-radius: 9px;
+            }
+            .header-section .top-inputs .lottery-action-buttons {
+                width: min(320px, calc(100vw - 32px));
+                background: #0d1e34;
+                border: 1px solid #334e6e;
+            }
+            .header-section .top-inputs .lottery-action-buttons > button {
+                width: calc(100% - 16px);
+                border: 1px solid rgba(210,225,245,.25);
+                border-radius: 7px;
+                box-sizing: border-box;
+            }
+        }
+        /* Mobil: Menu vlevo od data, oba prvky jako jeden vystredeny radek. */
+        @media (max-width: 600px) {
+            .header-section { margin-bottom: 4px !important; }
+            .header-section .top-inputs {
+                display: grid !important;
+                grid-template-columns: 105px minmax(0, 1fr);
+                align-items: end !important;
+                justify-content: center !important;
+                column-gap: 12px !important;
+                width: min(320px, calc(100vw - 24px)) !important;
+                margin-inline: auto;
+                position: relative;
+            }
+            .header-section .top-inputs > .input-group:not([style*="display: none"]) {
+                grid-column: 2; grid-row: 1;
+                width: 100% !important;
+                min-width: 0;
+            }
+            .header-section #staked-date { width: 100% !important; max-width: none !important; }
+            .header-section .top-inputs #mobile-actions-toggle {
+                grid-column: 1; grid-row: 1;
+                width: 105px; min-width: 0;
+                height: 36px;
+                align-self: end !important;
+                margin: 0 !important;
+            }
+            .header-section .top-inputs .lottery-action-buttons {
+                top: calc(100% + 8px);
+                left: 50%;
+                width: 100%;
+            }
+        }
+        /* Mobil: hamburger bez ramecku, uzsi plovouci nabidka a tlacitka. */
+        @media (max-width: 600px) {
+            .header-section .top-inputs #mobile-actions-toggle {
+                border: none !important;
+                background: transparent !important;
+                box-shadow: none !important;
+            }
+            .header-section .top-inputs .lottery-action-buttons {
+                width: min(288px, calc(100vw - 48px)) !important;
+            }
+            .header-section .top-inputs .lottery-action-buttons > button {
+                width: calc(100% - 24px) !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -778,9 +1004,12 @@
                     <input type="number" id="staked-amount" value="0"> 
                 </div>
 
-                <button class="green" id="generate-button">Generovat nová čísla</button>
-                <button class="blue" id="save-all-button">Uložit všechny sázky</button>
-                <button class="red" id="evaluate-button">Vyhodnotit výsledky</button>
+                <button type="button" id="mobile-actions-toggle" aria-expanded="false" aria-controls="lottery-action-buttons" aria-label="Zobrazit tlačítka" title="Zobrazit nabídku"><span class="hamburger-lines" aria-hidden="true"><i></i><i></i><i></i></span><span>Menu</span></button>
+                <div id="lottery-action-buttons" class="lottery-action-buttons">
+                    <button class="green" id="generate-button">Generovat nová čísla</button>
+                    <button class="blue" id="save-all-button">Uložit všechny sázky</button>
+                    <button class="red" id="evaluate-button">Vyhodnotit výsledky</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1684,6 +1913,19 @@
         document.addEventListener('keydown', e => {
             const p = panel();
             if (e.key === 'Escape' && p?.open) p.open = false;
+        });
+    })();
+    </script>
+
+    <script>
+    (() => {
+        const toggle = document.getElementById('mobile-actions-toggle');
+        const actions = document.getElementById('lottery-action-buttons');
+        if (!toggle || !actions) return;
+        toggle.addEventListener('click', () => {
+            const opened = actions.classList.toggle('is-open');
+            toggle.setAttribute('aria-expanded', String(opened));
+            toggle.setAttribute('aria-label', opened ? 'Skrýt tlačítka' : 'Zobrazit tlačítka');
         });
     })();
     </script>
