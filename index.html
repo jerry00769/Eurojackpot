@@ -535,11 +535,78 @@
         }
         
     
-        .renta-settings {padding:12px 16px !important;}
-        .renta-settings[open] {padding:20px !important;}
-        .renta-settings summary {list-style:none;}
+        /* Nastavení – vysouvací panel s pravostranně zaobleným úchytem. */
+        .renta-settings {
+            --settings-tab: 44px;
+            --settings-width: min(420px, 96vw);
+            position: fixed !important;
+            top: 18vh;
+            left: calc(var(--settings-tab) - var(--settings-width));
+            width: var(--settings-width) !important;
+            min-height: 320px;
+            max-height: 78vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            box-sizing: border-box;
+            padding: 18px calc(var(--settings-tab) + 12px) 18px 18px !important;
+            margin: 0 !important;
+            z-index: 1000;
+            border-radius: 0 15px 15px 0 !important;
+            transition: left .35s ease, box-shadow .35s ease;
+            box-shadow: 0 8px 28px rgba(0,0,0,.35);
+        }
+        .renta-settings[open] {left:0;}
+        .renta-settings summary {
+            position: sticky;
+            float: right;
+            margin: -18px calc(-1 * (var(--settings-tab) + 12px)) 0 0;
+            width: var(--settings-tab);
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            white-space: nowrap;
+            list-style: none;
+            cursor: pointer;
+            background: #273a59;
+            border-radius: 0 14px 14px 0;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: .1px;
+            box-shadow: none;
+        }
         .renta-settings summary::-webkit-details-marker {display:none;}
         .renta-settings input[type=file] {max-width:160px;}
+        @media (min-width: 601px) and (max-width: 900px), (max-width: 600px) {
+            .renta-settings {
+                --settings-tab: 17px;
+                --settings-width: min(420px, 94vw);
+                top: 25vh;
+                min-height: 220px;
+                border-radius: 0 14px 14px 0 !important;
+            }
+            .renta-settings summary {
+                height: 220px;
+                border-radius: 0 13px 13px 0;
+                font-size: 0;
+                letter-spacing: 0;
+                color: transparent;
+            }
+            .renta-settings summary::after {
+                content: '';
+                display: block;
+                width: 4px;
+                height: 52px;
+                border-radius: 5px;
+                background: #8bb7f0;
+                opacity: .8;
+            }
+            .renta-settings[open] summary::after {height: 38px;}
+        }
+        @media (prefers-reduced-motion: reduce) {.renta-settings {transition:none;}}
         @media(max-width:600px){
           body{padding:10px 6px;zoom:100%;}
           .header-section,.content-sections{width:100%;max-width:100%;}
@@ -638,7 +705,6 @@
         .lottery-block {flex-basis:230px;}
         .numbers-grid {grid-template-columns:repeat(10,1fr);max-width:230px;gap:4px;}
         .number-box {width:20px;height:20px;font-size:.72em;}
-        .euro-label {grid-column:1/-1;text-align:center;color:#e5c66e;font-size:.75em;font-weight:700;margin-top:8px;}
         .euro-ball {background:#57471f;color:#ffe5a0;}
         .euro-selected {background:#e3b63f;color:#1b2132;}
         .history-number-bubble.euro {background:#e3b63f;color:#1b2132;}
@@ -663,6 +729,10 @@
             width:max-content; max-width:100%;
             justify-content:center;
         }
+        #prediction-container .euro-numbers-gap {
+            grid-column: 1 / -1;
+            height: 10px;
+        }
         #prediction-container .number-box,
         #staked-history-table .history-number-bubble {
             width:25px;height:25px;font-size:.8em;
@@ -683,6 +753,12 @@
             #prediction-container .numbers-grid {grid-template-columns:repeat(10,23px);}
             #prediction-container .number-box,
             #staked-history-table .history-number-bubble {width:23px;height:23px;font-size:.76em;}
+        }
+        /* PC: vystředit sedm čísel v buňce Kombinace historie. */
+        @media (min-width: 901px) {
+            #staked-history-table td.column-combination .combination-display {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -1228,7 +1304,7 @@
 
                 const title = document.createElement('h2');
                 title.className = 'lottery-title';
-                title.textContent = `Kombinace #${index + 1}`;
+                title.textContent = `Kombinace ${index + 1}`;
                 block.appendChild(title);
 
                 const numbersGrid = document.createElement('div');
@@ -1245,10 +1321,11 @@
                     if (main.includes(i)) numberBox.classList.add('highlight');
                     numbersGrid.appendChild(numberBox);
                 }
-                const euroLabel = document.createElement('div');
-                euroLabel.className = 'euro-label';
-                euroLabel.textContent = 'EURO ČÍSLA';
-                numbersGrid.appendChild(euroLabel);
+                // Zachovat vizuální mezeru mezi hlavními a Euro čísly bez nadpisu.
+                const euroGap = document.createElement('div');
+                euroGap.className = 'euro-numbers-gap';
+                euroGap.setAttribute('aria-hidden', 'true');
+                numbersGrid.appendChild(euroGap);
                 for (let i = 1; i <= 12; i++) {
                     const numberBox = document.createElement('div');
                     numberBox.className = 'number-box euro-ball';
@@ -1575,6 +1652,40 @@
                 }
             });
         });
+    </script>
+    <script>
+    /* Dotykové vysunutí nastavení z levého okraje na mobilu a tabletu. */
+    (() => {
+        const panel = () => document.querySelector('.renta-settings');
+        const mobile = () => window.matchMedia('(max-width: 900px)').matches;
+        let startX = 0, startY = 0, tracking = false;
+        document.addEventListener('touchstart', e => {
+            if (!mobile() || e.touches.length !== 1) { tracking = false; return; }
+            const p = panel();
+            if (!p) return;
+            const t = e.touches[0];
+            tracking = p.open ? (t.clientX < p.getBoundingClientRect().right + 30) : (t.clientX <= 35);
+            startX = t.clientX; startY = t.clientY;
+        }, {passive:true});
+        document.addEventListener('touchend', e => {
+            if (!tracking || !mobile() || !e.changedTouches.length) return;
+            tracking = false;
+            const p = panel();
+            if (!p) return;
+            const t = e.changedTouches[0], dx = t.clientX - startX, dy = t.clientY - startY;
+            if (Math.abs(dx) < 65 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+            if (dx > 0 && !p.open) p.open = true;
+            else if (dx < 0 && p.open) p.open = false;
+        }, {passive:true});
+        document.addEventListener('click', e => {
+            const p = panel();
+            if (p?.open && !p.contains(e.target)) p.open = false;
+        });
+        document.addEventListener('keydown', e => {
+            const p = panel();
+            if (e.key === 'Escape' && p?.open) p.open = false;
+        });
+    })();
     </script>
 </body>
 </html>
