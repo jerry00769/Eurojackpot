@@ -1126,7 +1126,7 @@
             
             let html = '<div class="combination-display">';
             numbers.forEach((number, index) => {
-                html += `<div class="history-number-bubble${index >= 5 ? ' euro' : ''}">${number}</div>`;
+                html += `<div class="history-number-bubble${index >= 5 ? ' euro' : ''}">${String(number).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}</div>`;
             });
             html += '</div>';
             
@@ -1162,20 +1162,21 @@
                             const row = document.createElement('tr');
                             const combinationsHtml = createCombinationHtml(item.Kombinace);
                             
+                            const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
                             const evaluationText = item.Vyhodnoceni || 'Nevyhodnoceno';
                             const matchCount = item.Shodna_cisla || ''; 
 
                             let actionHtml = '';
                             if (!renderedDates.has(date)) {
-                                actionHtml = `<button class="delete-button" data-date="${date}"><span class="icon">✖</span> Smazat</button>`;
+                                actionHtml = `<button class="delete-button" data-date="${escapeHtml(date)}"><span class="icon">✖</span> Smazat</button>`;
                                 renderedDates.add(date); 
                             } 
 
                             row.innerHTML = `
-                                <td>${date}</td>
+                                <td>${escapeHtml(date)}</td>
                                 <td class="column-combination">${combinationsHtml}</td>
-                                <td></td> <td>${evaluationText}</td>
-                                <td>${matchCount}</td>
+                                <td></td> <td>${escapeHtml(evaluationText)}</td>
+                                <td>${escapeHtml(matchCount)}</td>
                                 <td>${actionHtml}</td>
                             `;
                             historyTableBody.appendChild(row);
@@ -1366,7 +1367,7 @@
                 })
                 .catch(error => {
                     const container = document.getElementById('prediction-container');
-                    container.innerHTML = `<p style="color: #ff5252; font-weight: bold; text-align: center;">Chyba při načítání dat: ${error.message}. Zkontrolujte načtení dat a soubor web-core.js.</p>`;
+                    container.replaceChildren(); const p = document.createElement('p'); p.style.cssText = 'color:#ff5252;font-weight:bold;text-align:center'; p.textContent = 'Chyba při načítání dat: ' + error.message + '. Zkontrolujte načtení dat a soubor web-core.js.'; container.appendChild(p);
                     console.error('Došlo k chybě:', error);
                     if (SAVE_ALL_BUTTON) {
                         SAVE_ALL_BUTTON.classList.remove('blinking-button');
