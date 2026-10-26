@@ -143,6 +143,28 @@
         .toast-message.info { background-color: #2196F3; }
         .toast-message.warning { background-color: #ffed4a; color: #1a2a43; }
 
+
+        /* Kompaktni mobilni oznameni – PC a tablet beze zmeny. */
+        @media (max-width: 600px) {
+            .toast-message {
+                top: auto !important;
+                bottom: calc(22px + env(safe-area-inset-bottom, 0px)) !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                width: max-content;
+                max-width: min(78vw, 310px) !important;
+                min-width: 0 !important;
+                box-sizing: border-box;
+                padding: 10px 14px !important;
+                border-radius: 9px;
+                font-size: 12px !important;
+                font-weight: 500 !important;
+                line-height: 1.4;
+                box-shadow: 0 3px 12px rgba(0,0,0,.3);
+                transition: opacity .25s ease;
+            }
+        }
+
         /* --- STYLY PRO POTVRZOVACÍ DIALOG (Modal) --- */
         /* Změna z .modal-overlay na .dialog-overlay pro vizuální sjednocení se Sportka */
         .dialog-overlay, .modal-overlay { 
@@ -1102,6 +1124,10 @@
             statusDiv.classList.add(type);
         }
 
+        function toastDuration(ms) {
+            return window.matchMedia("(max-width: 600px)").matches ? (ms >= 10000 ? 4000 : 2800) : ms;
+        }
+
         function hideStatusMessage() {
             document.getElementById('statusMessage').classList.remove('visible');
             document.getElementById('statusMessage').className = 'toast-message';
@@ -1142,11 +1168,11 @@
                     const type = data.status === 'ok' ? 'success' : 'error';
                     // Zobrazí zprávu vrácenou z Flask (app.py)
                     displayStatusMessage(data.message, type); 
-                    setTimeout(hideStatusMessage, 8000); 
+                    setTimeout(hideStatusMessage, toastDuration(8000)); 
                 })
                 .catch(error => {
                     displayStatusMessage(`Spuštění skriptu selhalo. Chyba: ${error.message}`, 'error');
-                    setTimeout(hideStatusMessage, 10000);
+                    setTimeout(hideStatusMessage, toastDuration(10000));
                 });
         }
         
@@ -1286,12 +1312,12 @@
                             displayStatusMessage(`Chyba při obnově: ${data.message}`, 'error');
                         }
                         this.updateButtonState(); 
-                        setTimeout(hideStatusMessage, 3000);
+                        setTimeout(hideStatusMessage, toastDuration(3000));
                     })
                     .catch(error => {
                         displayStatusMessage("Obnova selhala. Zkontrolujte logy serveru.", 'error');
                         this.updateButtonState(); 
-                        setTimeout(hideStatusMessage, 5000);
+                        setTimeout(hideStatusMessage, toastDuration(5000));
                     });
                 }
             },
@@ -1343,7 +1369,7 @@
             
             if (!date) {
                 displayStatusMessage("Vyplňte prosím datum sázky.", 'error');
-                setTimeout(hideStatusMessage, 5000); 
+                setTimeout(hideStatusMessage, toastDuration(5000)); 
                 return Promise.resolve();
             }
 
@@ -1356,7 +1382,7 @@
 
             if (allPredictions.length === 0) {
                 displayStatusMessage("Nejsou k dispozici žádné sázky k uložení.", 'error');
-                setTimeout(hideStatusMessage, 5000);
+                setTimeout(hideStatusMessage, toastDuration(5000));
                 return Promise.resolve();
             }
 
@@ -1369,11 +1395,11 @@
             .then(data => {
                 const type = data.status === 'ok' ? 'success' : 'error';
                 displayStatusMessage(data.message, type);
-                setTimeout(hideStatusMessage, 5000);
+                setTimeout(hideStatusMessage, toastDuration(5000));
             })
             .catch(error => {
                 displayStatusMessage("Uložení selhalo. Zkontrolujte logy serveru.", 'error');
-                setTimeout(hideStatusMessage, 5000);
+                setTimeout(hideStatusMessage, toastDuration(5000));
                 throw error; 
             });
         }
@@ -1397,11 +1423,11 @@
                             const type = data.status === 'ok' ? 'success' : 'error';
                             displayStatusMessage(data.message, type);
                             resolve(); 
-                            setTimeout(hideStatusMessage, 5000);
+                            setTimeout(hideStatusMessage, toastDuration(5000));
                         })
                         .catch(error => {
                             displayStatusMessage("Smazání selhalo. Zkontrolujte logy serveru.", 'error');
-                            setTimeout(hideStatusMessage, 5000);
+                            setTimeout(hideStatusMessage, toastDuration(5000));
                             reject(error); 
                         });
                     })
@@ -1413,13 +1439,14 @@
             return fetch(EVALUATE_URL)
             .then(response => response.json())
             .then(data => {
-                const type = data.status === 'ok' ? 'success' : 'error';
+                const type = data.status !== 'ok' ? 'error' :
+                    data.message === 'Žádné nové výsledky k vyhodnocení.' ? 'warning' : 'success';
                 displayStatusMessage(data.message, type);
-                setTimeout(hideStatusMessage, 5000);
+                setTimeout(hideStatusMessage, toastDuration(5000));
             })
             .catch(error => {
                 displayStatusMessage("Vyhodnocení selhalo. Zkontrolujte logy serveru.", 'error');
-                setTimeout(hideStatusMessage, 5000);
+                setTimeout(hideStatusMessage, toastDuration(5000));
                 throw error; 
             });
         }
@@ -1507,7 +1534,7 @@
                     document.getElementById('history-section-container').style.display = 'block'; 
                     document.getElementById('no-history-message').textContent = `Chyba při načítání historie: ${error.message}`;
                     document.getElementById('no-history-message').style.display = 'block'; 
-                    setTimeout(hideStatusMessage, 5000);
+                    setTimeout(hideStatusMessage, toastDuration(5000));
                 });
         }
         
@@ -1771,12 +1798,12 @@
                         } else {
                             displayStatusMessage(data.message, 'error');
                         }
-                        setTimeout(hideStatusMessage, 5000);
+                        setTimeout(hideStatusMessage, toastDuration(5000));
                     })
                     .catch(error => {
                         isGenerating = false;
                         displayStatusMessage(error.message, 'error');
-                        setTimeout(hideStatusMessage, 10000);
+                        setTimeout(hideStatusMessage, toastDuration(10000));
                     });
             });
             
@@ -1875,7 +1902,7 @@
                             dateInput.classList.remove('date-input-not-confirmed');
                             dateInput.classList.add('date-input-error');
                             displayStatusMessage('Datum musí být úterý nebo pátek (slosovací dny)!', 'error');
-                            setTimeout(hideStatusMessage, 3000);
+                            setTimeout(hideStatusMessage, toastDuration(3000));
                         }
                     }
                 }
