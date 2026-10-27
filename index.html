@@ -332,6 +332,8 @@
             margin-bottom: 15px;
         }
         
+        .lottery-title .count-invalid { color: #ff5555; }
+
         .numbers-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -1529,9 +1531,25 @@
                 allPredictions.push(numbers);
             });
 
-            if (allPredictions.some(a => a.length !== 7 || new Set(a.slice(0,5)).size !== 5 || new Set(a.slice(5)).size !== 2)) {
-                displayStatusMessage("Nejdříve doplň všechny kombinace na 5 hlavních a 2 euročísla.", "warning");
-                setTimeout(hideStatusMessage, toastDuration(4000));
+            // Kontrola každé kombinace samostatně, včetně neúplných euročísel.
+            const invalid = Array.from(grids).map((grid, index) => {
+                const main = JSON.parse(grid.dataset.main || '[]');
+                const euro = JSON.parse(grid.dataset.euro || '[]');
+                return {grid, index, main, euro};
+            }).find(item => item.main.length !== 5 || item.euro.length !== 2 ||
+                new Set(item.main).size !== 5 || new Set(item.euro).size !== 2);
+            if (invalid) {
+                const missingMain = Math.max(0, 5 - invalid.main.length);
+                const missingEuro = Math.max(0, 2 - invalid.euro.length);
+                const details = [missingMain ? `${missingMain} hlavní ${missingMain === 1 ? 'číslo' : 'čísla'}` : '',
+                                 missingEuro ? `${missingEuro} ${missingEuro === 1 ? 'euročíslo' : 'euročísla'}` : ''].filter(Boolean).join(' a ');
+                displayStatusMessage(`Kombinace ${invalid.index + 1}: doplň ${details || 'správný počet čísel'}.`, 'warning');
+                setTimeout(hideStatusMessage, toastDuration(5000));
+                // Přesun pouze na mobilu; PC a tablet zůstávají na své pozici.
+                if (window.matchMedia('(max-width: 600px)').matches) {
+                    const target = invalid.grid.closest('.lottery-block') || invalid.grid;
+                    target.scrollIntoView({behavior: 'smooth', block: 'center'});
+                }
                 return Promise.resolve();
             }
 
@@ -1695,6 +1713,16 @@
         
 
         // Ruční úprava predikcí: ukládá se do stejného zdroje jako generátor.
+        function updatePredictionCount(grid) {
+            const title = grid.closest('.lottery-block')?.querySelector('.lottery-title');
+            if (!title) return;
+            const main = JSON.parse(grid.dataset.main || '[]');
+            const euro = JSON.parse(grid.dataset.euro || '[]');
+            const count = title.querySelector('.prediction-count');
+            if (!count) return;
+            count.innerHTML = `(<span class="${main.length !== 5 ? 'count-invalid' : ''}">${main.length}</span> / <span class="${euro.length !== 2 ? 'count-invalid' : ''}">${euro.length}</span>)`;
+        }
+
         async function editPredictionNumber(grid, number, isEuro) {
             const current = JSON.parse(grid.dataset.numbers);
             const mainBefore = JSON.parse(grid.dataset.main);
@@ -1713,6 +1741,7 @@
             const updated = [...main, ...euro];
             grid.dataset.main=JSON.stringify(main); grid.dataset.euro=JSON.stringify(euro);
             grid.dataset.numbers = JSON.stringify(updated);
+            updatePredictionCount(grid);
             grid.querySelectorAll('.number-box').forEach((box, i) => {
                 const chosen = i < 50 ? main.includes(i+1) : euro.includes(i-49);
                 box.classList.toggle(i < 50 ? 'highlight' : 'euro-selected', chosen);
@@ -1746,7 +1775,10 @@
 
                 const title = document.createElement('h2');
                 title.className = 'lottery-title';
-                title.textContent = `Kombinace ${index + 1}`;
+                title.textContent = `Kombinace ${index + 1} `;
+                const countLabel = document.createElement('span');
+                countLabel.className = 'prediction-count';
+                title.appendChild(countLabel);
                 block.appendChild(title);
 
                 const numbersGrid = document.createElement('div');
@@ -1786,6 +1818,7 @@
                 }
 
                 block.appendChild(numbersGrid);
+                updatePredictionCount(numbersGrid);
                 container.appendChild(block);
             });
         }
