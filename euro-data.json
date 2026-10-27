@@ -12283,6 +12283,54 @@
       "Shodna_cisla": " | ",
       "Metoda": "Python AI metoda",
       "Poradi": 36
+    },
+    {
+      "Datum_sazky": "2026-10-30",
+      "Kombinace": "5,11,20,21,30,5,7",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 1
+    },
+    {
+      "Datum_sazky": "2026-10-30",
+      "Kombinace": "16,18,34,35,49,4,5",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 2
+    },
+    {
+      "Datum_sazky": "2026-10-30",
+      "Kombinace": "14,21,23,30,37,5,10",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 3
+    },
+    {
+      "Datum_sazky": "2026-10-30",
+      "Kombinace": "4,11,20,35,41,7,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 4
+    },
+    {
+      "Datum_sazky": "2026-10-30",
+      "Kombinace": "16,17,30,35,43,2,3",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 5
+    },
+    {
+      "Datum_sazky": "2026-10-30",
+      "Kombinace": "17,20,23,41,49,3,9",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 6
     }
   ],
   "predictions": [
