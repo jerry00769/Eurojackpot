@@ -1329,53 +1329,10 @@
         
         // --- Původní logika Renta AI (ponecháno beze změny funkčnosti) ---
         
-        let deleteConfirmationResolver = null;
+        // Stejné systémové potvrzení mazání jako ve Sportce a Rentě.
         function showDeleteModal(dateToDelete) {
-            const modal = document.getElementById('deleteConfirmationModal');
-            const modalText = document.getElementById('modal-text');
-            const confirmBtn = document.getElementById('modal-confirm-btn');
-            const cancelBtn = document.getElementById('modal-cancel-btn');
-            modalText.textContent = `Opravdu chcete smazat VŠECHNY sázky pro datum ${dateToDelete}?`;
-            // Používá Sportka třídu 'visible' i pro Renta modal
-            modal.classList.add('visible'); 
-            
-            return new Promise(resolve => {
-                deleteConfirmationResolver = resolve;
-                
-                const cleanup = () => {
-                    confirmBtn.removeEventListener('click', handleConfirm);
-                    cancelBtn.removeEventListener('click', handleCancel);
-                    modal.removeEventListener('click', handleOverlayClick);
-                    deleteConfirmationResolver = null;
-                };
-
-                const handleConfirm = () => {
-                    hideDeleteModal();
-                    cleanup();
-                    resolve(true); 
-                };
-
-                const handleCancel = () => {
-                    hideDeleteModal();
-                    cleanup();
-                    resolve(false); 
-                };
-
-                const handleOverlayClick = (event) => {
-                    if (event.target === modal) {
-                        handleCancel(); 
-                    }
-                };
-
-                confirmBtn.addEventListener('click', handleConfirm);
-                cancelBtn.addEventListener('click', handleCancel);
-                modal.addEventListener('click', handleOverlayClick);
-            });
+            return Promise.resolve(window.confirm(`Smazat všechny sázky pro datum ${dateToDelete}?`));
         }
-
-        function hideDeleteModal() {
-            document.getElementById('deleteConfirmationModal').classList.remove('visible');
-        } 
 
         const HistoryManager = {
             storageKey: 'rentaStakedHistory', 
