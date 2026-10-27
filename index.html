@@ -728,6 +728,8 @@
         .numbers-grid {grid-template-columns:repeat(10,1fr);max-width:230px;gap:4px;}
         .number-box {width:20px;height:20px;font-size:.72em;}
         .euro-ball {background:#57471f;color:#ffe5a0;}
+        #prediction-container .number-box { cursor:pointer; touch-action:manipulation; }
+        #prediction-container .number-box:focus-visible { outline:2px solid #fff; outline-offset:2px; }
         .euro-selected {background:#e3b63f;color:#1b2132;}
         .history-number-bubble.euro {background:#e3b63f;color:#1b2132;}
         @media(max-width:600px){.lottery-block{flex-basis:270px}.numbers-grid{max-width:230px}}
@@ -1527,6 +1529,12 @@
                 allPredictions.push(numbers);
             });
 
+            if (allPredictions.some(a => a.length !== 7 || new Set(a.slice(0,5)).size !== 5 || new Set(a.slice(5)).size !== 2)) {
+                displayStatusMessage("Nejdříve doplň všechny kombinace na 5 hlavních a 2 euročísla.", "warning");
+                setTimeout(hideStatusMessage, toastDuration(4000));
+                return Promise.resolve();
+            }
+
             if (allPredictions.length === 0) {
                 displayStatusMessage("Nejsou k dispozici žádné sázky k uložení.", 'error');
                 setTimeout(hideStatusMessage, toastDuration(5000));
@@ -1686,6 +1694,37 @@
         }
         
 
+        // Ruční úprava predikcí: ukládá se do stejného zdroje jako generátor.
+        async function editPredictionNumber(grid, number, isEuro) {
+            const current = JSON.parse(grid.dataset.numbers);
+            const mainBefore = JSON.parse(grid.dataset.main);
+            const euroBefore = JSON.parse(grid.dataset.euro);
+            const start = isEuro ? 5 : 0, count = isEuro ? 2 : 5;
+            const selected = [...(isEuro ? euroBefore : mainBefore)];
+            const position = selected.indexOf(number);
+            if (position >= 0) selected.splice(position, 1);
+            else if (selected.length >= count) {
+                displayStatusMessage(isEuro ? 'Nejdříve odznač jedno euročíslo (maximum 2).' : 'Nejdříve odznač jedno hlavní číslo (maximum 5).', 'warning');
+                setTimeout(hideStatusMessage, toastDuration(3000));
+                return;
+            } else selected.push(number);
+            selected.sort((a,b) => a-b);
+            const main = isEuro ? mainBefore : selected, euro = isEuro ? selected : euroBefore;
+            const updated = [...main, ...euro];
+            grid.dataset.main=JSON.stringify(main); grid.dataset.euro=JSON.stringify(euro);
+            grid.dataset.numbers = JSON.stringify(updated);
+            grid.querySelectorAll('.number-box').forEach((box, i) => {
+                const chosen = i < 50 ? main.includes(i+1) : euro.includes(i-49);
+                box.classList.toggle(i < 50 ? 'highlight' : 'euro-selected', chosen);
+                box.setAttribute('aria-pressed', String(chosen));
+            });
+            try {
+                const response = await fetch('/app/update_prediction', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({index:Number(grid.dataset.index),main,euro})});
+                const result=await response.json();
+                if(result.status!=='ok')throw Error(result.message);
+            } catch(e) { displayStatusMessage('Změnu se nepodařilo uložit: '+e.message,'error'); loadPredictions(); }
+        }
+
         function displayPredictions(predictions) {
             const container = document.getElementById('prediction-container');
             container.innerHTML = '';
@@ -1713,6 +1752,9 @@
                 const numbersGrid = document.createElement('div');
                 numbersGrid.className = 'numbers-grid';
                 numbersGrid.dataset.numbers = JSON.stringify(predictedNumbers);
+                numbersGrid.dataset.index = index;
+                numbersGrid.dataset.main = JSON.stringify(predictedNumbers.slice(0,5));
+                numbersGrid.dataset.euro = JSON.stringify(predictedNumbers.slice(5,7));
 
                 // Eurojackpot: 5 hlavních čísel z 50 a 2 Euro čísla z 12.
                 const main = predictedNumbers.slice(0,5);
@@ -1722,6 +1764,9 @@
                     numberBox.className = 'number-box';
                     numberBox.textContent = i;
                     if (main.includes(i)) numberBox.classList.add('highlight');
+                    numberBox.setAttribute('role','button'); numberBox.tabIndex=0; numberBox.setAttribute('aria-pressed',String(main.includes(i)));
+                    numberBox.onclick=()=>editPredictionNumber(numbersGrid,i,false);
+                    numberBox.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();numberBox.click()}};
                     numbersGrid.appendChild(numberBox);
                 }
                 // Zachovat vizuální mezeru mezi hlavními a Euro čísly bez nadpisu.
@@ -1734,6 +1779,9 @@
                     numberBox.className = 'number-box euro-ball';
                     numberBox.textContent = i;
                     if (euro.includes(i)) numberBox.classList.add('euro-selected');
+                    numberBox.setAttribute('role','button'); numberBox.tabIndex=0; numberBox.setAttribute('aria-pressed',String(euro.includes(i)));
+                    numberBox.onclick=()=>editPredictionNumber(numbersGrid,i,true);
+                    numberBox.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();numberBox.click()}};
                     numbersGrid.appendChild(numberBox);
                 }
 
