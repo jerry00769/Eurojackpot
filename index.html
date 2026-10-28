@@ -1304,6 +1304,35 @@
 #history-section-container .table-container::-webkit-scrollbar-thumb:hover {background:#7391b7!important;}
 #staked-history-table tbody {padding-right:0!important;}
 
+
+/* Eurojackpot: ramecek historie presne podle referencni Sportky.
+   Vnejsi svetlejsi plocha je oddelena od vlastni posuvne oblasti. */
+#history-section-container .history-frame {
+  box-sizing:border-box;
+  width:100%;max-width:100%;min-width:0;
+  border:1px solid #354866;
+  border-radius:7px;
+  padding:6px 5px 6px 7px;
+  overflow:hidden;
+  background:transparent;
+}
+#history-section-container .history-frame > .table-container {
+  box-sizing:border-box!important;
+  width:100%!important;max-width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:4px!important;
+  background:transparent!important;
+  overflow-y:auto!important;
+  scrollbar-gutter:auto!important;
+  scrollbar-width:thin!important;
+  scrollbar-color:#60718e #1a2942!important;
+}
+#history-section-container .history-frame > .table-container::-webkit-scrollbar {width:7px!important;height:7px!important;}
+#history-section-container .history-frame > .table-container::-webkit-scrollbar-track {background:#1a2942!important;}
+#history-section-container .history-frame > .table-container::-webkit-scrollbar-thumb {background:#60718e!important;border:1px solid #1a2942!important;border-radius:8px!important;}
+
 </style>
 </head>
 <body>
@@ -1359,7 +1388,7 @@
                 </div>
                 </div>
             
-            <div class="table-container"> 
+            <div class="history-frame"><div class="table-container"> 
                 <table id="staked-history-table">
                     <thead> 
                         <tr> 
@@ -1373,7 +1402,7 @@
                     <tbody id="staked-history-body"> 
                     </tbody> 
                 </table> 
-            </div>
+            </div></div>
             <p id="no-history-message" style="display: none; margin-top: 20px;">Zatím nebyly uloženy žádné sázky.</p>
         </div> 
     </div> 
