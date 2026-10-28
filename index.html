@@ -1174,7 +1174,7 @@
 @media(max-width:350px){:root{--lot-ball:23px}}
 #prediction-container.lottery-blocks-container{box-sizing:border-box!important;display:grid!important;grid-template-columns:repeat(var(--lot-cols),minmax(0,var(--lot-card)))!important;gap:var(--lot-gap)!important;width:min(100%,var(--lot-total))!important;max-width:100%!important;margin-inline:auto!important;justify-content:center!important}
 #prediction-container .lottery-block{box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:100%!important;padding:10px var(--lot-pad)!important}
-#prediction-container .numbers-grid{grid-template-columns:repeat(10,var(--lot-ball))!important;gap:var(--lot-step)!important;width:max-content!important;max-width:100%!important;margin-inline:auto!important;justify-content:center!important}
+#prediction-container .numbers-grid{grid-template-columns:repeat(7,var(--lot-ball))!important;gap:var(--lot-step)!important;width:max-content!important;max-width:100%!important;margin-inline:auto!important;justify-content:center!important}
 #prediction-container .number-box{width:var(--lot-ball)!important;height:var(--lot-ball)!important;box-sizing:border-box!important}
 #history-section-container{box-sizing:border-box!important;width:min(100%,var(--lot-total))!important;max-width:100%!important;margin-inline:auto!important}
 #history-section-container .history-header,#history-section-container .table-container{box-sizing:border-box!important;width:100%!important;max-width:100%!important}
@@ -1282,6 +1282,27 @@
 #staked-history-table .history-number-bubble{width:clamp(20px,3vw,25px)!important;height:clamp(20px,3vw,25px)!important;flex:0 0 clamp(20px,3vw,25px)!important;font-size:.75em!important}
 @media(max-width:700px){#history-section-container{width:min(100%,var(--lot-card))!important}#history-section-container .history-header{justify-content:center!important}#staked-history-table tbody tr{padding:10px!important}}
 @media(max-width:350px){#staked-history-table .history-number-bubble{width:20px!important;height:20px!important;flex-basis:20px!important}}
+
+
+/* Historie: posuvnik uvnitr oramovaneho panelu jako ve Sportce.
+   Pouze vzhled scrollovaci oblasti; responzivni karty a jejich sirky zustavaji. */
+#history-section-container .table-container {
+  box-sizing:border-box!important;
+  border:1px solid #354866!important;
+  border-radius:7px!important;
+  background:#1a2a43!important;
+  padding:7px 5px 7px 8px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scrollbar-gutter:stable!important;
+  scrollbar-width:thin!important;
+  scrollbar-color:#60718e #1a2942!important;
+}
+#history-section-container .table-container::-webkit-scrollbar {width:7px!important;}
+#history-section-container .table-container::-webkit-scrollbar-track {background:#1a2942!important;border-radius:6px!important;}
+#history-section-container .table-container::-webkit-scrollbar-thumb {background:#60718e!important;border:1px solid #1a2942!important;border-radius:8px!important;}
+#history-section-container .table-container::-webkit-scrollbar-thumb:hover {background:#7391b7!important;}
+#staked-history-table tbody {padding-right:0!important;}
 
 </style>
 </head>
