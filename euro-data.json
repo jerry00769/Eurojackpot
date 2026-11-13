@@ -12343,6 +12343,54 @@
       "Shodna_cisla": " | ",
       "Metoda": "Python AI metoda",
       "Poradi": 36
+    },
+    {
+      "Datum_sazky": "2026-11-13",
+      "Kombinace": "11,17,30,34,35,2,3",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 1
+    },
+    {
+      "Datum_sazky": "2026-11-13",
+      "Kombinace": "8,14,20,21,34,5,12",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 2
+    },
+    {
+      "Datum_sazky": "2026-11-13",
+      "Kombinace": "11,16,18,35,46,4,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 3
+    },
+    {
+      "Datum_sazky": "2026-11-13",
+      "Kombinace": "17,21,30,39,41,2,12",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 4
+    },
+    {
+      "Datum_sazky": "2026-11-13",
+      "Kombinace": "1,11,18,23,41,3,12",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 5
+    },
+    {
+      "Datum_sazky": "2026-11-13",
+      "Kombinace": "4,16,17,30,43,3,8",
+      "Cena": "0",
+      "Vyhodnoceni": "Nevyhodnoceno",
+      "Shodna_cisla": "",
+      "Poradi": 6
     }
   ],
   "predictions": [
