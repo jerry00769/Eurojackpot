@@ -476,19 +476,42 @@ async function writeCsvMirror(){
 }
 async function remote(method='GET',payload){if(method!=='GET'&&!config())throw Error('Pro zápis je potřeba přístupový token. Veřejné čtení funguje bez něj.');let path=cfg.path||'euro-data.json',url=`https://api.github.com/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/contents/${path.split('/').map(encodeURIComponent).join('/')}`;let controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),10000),r;try{r=await nativeFetch(url,{method,signal:controller.signal,headers:{...(cfg.token?{Authorization:`Bearer ${cfg.token}`} : {}),Accept:'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},...(payload?{body:JSON.stringify(payload)}:{})})}catch(e){if(e.name==='AbortError')throw Error('GitHub neodpověděl do 10 sekund; místní data zůstala zachována.');throw e}finally{clearTimeout(timeout)}let j=await r.json();if(!r.ok){if(r.status===404&&method==='GET')return null;if(r.status===409||r.status===422){const err=new Error('GitHub konflikt při souběžném zápisu.');err.githubConflict=true;throw err;}throw Error(j.message||`GitHub HTTP ${r.status}`)}return j}
 function validateData(d){if(!d||!Array.isArray(d.history)||!Array.isArray(d.bets)||!Array.isArray(d.predictions))throw Error('Neplatný JSON společných dat')}
-// Merge records by draw date and exact ticket, not by array position.
-// The local version wins only for the same ticket; unrelated remote bets survive.
+// Deletions are persisted as tombstones. A stale CSV or another browser's
+// local cache must never resurrect a ticket removed from shared JSON.
+const betKey=b=>date(b.Datum_sazky)+'|'+(valid(b.Kombinace)||parseNums(b.Kombinace)).join(',');
+// Explicit restoration overrides old deletion markers only for the imported bets.
+// Never reset deletion markers during ordinary background synchronization.
+function restoreImportedBets(rows){
+ const restored=rows.map((b,i)=>({...b,Poradi:b.Poradi||i+1,_savedAt:Date.now()+1000+i}));
+ const removed={...(data.deletedBets||{})};
+ for(const b of restored)delete removed[betKey(b)];
+ data.deletedBets=removed;
+ data.bets=restored;
+}
+function markDeleted(bets){
+ const removed={...(data.deletedBets||{})},now=Date.now();
+ for(const b of bets)removed[betKey(b)]=Math.max(Number(removed[betKey(b)])||0,now);
+ data.deletedBets=removed;
+}
 function mergeShared(remoteData, localData){
  validateData(remoteData);validateData(localData);
+ const deletedBets={...(remoteData.deletedBets||{})};
+ for(const [key,stamp] of Object.entries(localData.deletedBets||{}))
+  deletedBets[key]=Math.max(Number(deletedBets[key])||0,Number(stamp)||0);
  const bets=new Map();
- const betKey=b=>date(b.Datum_sazky)+'|'+(valid(b.Kombinace)||parseNums(b.Kombinace)).join(',');
  for(const b of remoteData.bets)bets.set(betKey(b),b);
- for(const b of localData.bets)bets.set(betKey(b),b);
+ for(const b of localData.bets){
+  const key=betKey(b),old=bets.get(key);
+  if(!old||Number(b._savedAt||0)>=Number(old._savedAt||0))bets.set(key,b);
+ }
+ for(const [key,b] of bets){
+  if((Number(deletedBets[key])||0)>=Number(b._savedAt||0))bets.delete(key);
+ }
  const draws=new Map();
  for(const h of remoteData.history)draws.set(date(h.date),h);
  for(const h of localData.history)draws.set(date(h.date),h);
  const predictions=localData.predictions.length?localData.predictions:remoteData.predictions;
- return {...remoteData,...localData,bets:[...bets.values()],history:[...draws.values()].sort((a,b)=>a.date.localeCompare(b.date)),predictions};
+ return {...remoteData,...localData,deletedBets,bets:[...bets.values()],history:[...draws.values()].sort((a,b)=>a.date.localeCompare(b.date)),predictions};
 }
 function readOnlyMerge(d){
  validateData(d);
@@ -582,10 +605,11 @@ for(let c of lines){let a=valid(c);if(!a)throw Error('Neplatná kombinace. Žád
 // Pokud byly všechny kombinace duplicitní, nesmažeme dřívější sázky daného dne.
 if(!accepted.length){result={status:'ok',message:`Nic neuloženo: všech ${rejected} kombinací už bylo vsazeno nebo se opakují.`};break}
 // Uložení pro stejné datum je nahrazení původních sloupců, jako v Rentě.
+markDeleted(data.bets.filter(b=>date(b.Datum_sazky)===d));
 data.bets=data.bets.filter(b=>date(b.Datum_sazky)!==d);
-for(let [i,a] of accepted.entries())data.bets.push({Datum_sazky:d,Kombinace:a.join(','),Cena:String(body.amount||0),Vyhodnoceni:'Nevyhodnoceno',Shodna_cisla:'',Poradi:i+1});
+for(let [i,a] of accepted.entries())data.bets.push({Datum_sazky:d,Kombinace:a.join(','),Cena:String(body.amount||0),Vyhodnoceni:'Nevyhodnoceno',Shodna_cisla:'',Poradi:i+1,_savedAt:Date.now()+1});
 persist();storeEuroFinanceSnapshot();result={status:'ok',message:`Uloženo ${accepted.length} sázek pro ${d}.`+(rejected?` Odmítnuto ${rejected} duplicitních kombinací.`:'')};break}
-case '/app/evaluate_staked':{let n=evaluate();storeEuroFinanceSnapshot();result={status:'ok',message:n?`Vyhodnoceno ${n} sázek.`:'Žádné nové výsledky k vyhodnocení.'};break}case '/app/delete_staked':{let before=data.bets.length;data.bets=data.bets.filter(b=>date(b.Datum_sazky)!==date(body.date));persist();storeEuroFinanceSnapshot();result={status:'ok',message:`Smazáno ${before-data.bets.length} sázek.`};break}case '/app/restore_staked_history':data.bets=(body.history_data||[]).map((b,i)=>({...b,Poradi:b.Poradi||i+1}));persist();storeEuroFinanceSnapshot();result={status:'ok',message:'Historie obnovena.'};break;case '/app/smart_financial_audit':result={status:'ok',message:smartFinancialAudit()};break;case '/app/run_kontrola':{let wins=data.bets.filter(b=>String(b.Vyhodnoceni).startsWith('Výhra'));result={status:'ok',message:`Přehled: ${wins.length} výherních sázek z ${data.bets.length}.`};break}default:throw Error('Neznámá funkce '+path)}return response(result)}catch(e){return response({status:'error',message:e.message},400)}}
+case '/app/evaluate_staked':{let n=evaluate();storeEuroFinanceSnapshot();result={status:'ok',message:n?`Vyhodnoceno ${n} sázek.`:'Žádné nové výsledky k vyhodnocení.'};break}case '/app/delete_staked':{let before=data.bets.length;markDeleted(data.bets.filter(b=>date(b.Datum_sazky)===date(body.date)));data.bets=data.bets.filter(b=>date(b.Datum_sazky)!==date(body.date));persist();storeEuroFinanceSnapshot();result={status:'ok',message:`Smazáno ${before-data.bets.length} sázek.`};break}case '/app/restore_staked_history':markDeleted(data.bets);data.bets=(body.history_data||[]).map((b,i)=>({...b,Poradi:b.Poradi||i+1,_savedAt:Date.now()+1}));persist();storeEuroFinanceSnapshot();result={status:'ok',message:'Historie obnovena.'};break;case '/app/smart_financial_audit':result={status:'ok',message:smartFinancialAudit()};break;case '/app/run_kontrola':{let wins=data.bets.filter(b=>String(b.Vyhodnoceni).startsWith('Výhra'));result={status:'ok',message:`Přehled: ${wins.length} výherních sázek z ${data.bets.length}.`};break}default:throw Error('Neznámá funkce '+path)}return response(result)}catch(e){return response({status:'error',message:e.message},400)}}
 const ready=seed();window.fetch=(url,opt)=>String(url).includes('/app/')?handle(url,opt):nativeFetch(url,opt);
 function download(name,content){let a=document.createElement('a'),blob=new Blob([content],{type:'text/plain;charset=utf-8'});a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 const fmtHistory=()=>['datum;rok;1;2;3;4;5;euro1;euro2',...data.history.slice().reverse().map(h=>[h.date.split('-').reverse().join('.'),h.date.slice(0,4),...h.numbers].join(';'))].join('\r\n')+'\r\n';
@@ -595,14 +619,14 @@ action('gh-connect',async()=>{let owner=document.getElementById('gh-owner').valu
 action('gh-pull',async()=>{if(!confirm('Načíst a sloučit společná data z GitHubu bez smazání místních sázek?'))return;let ok=await pull(true);conflict=false;if(!ok)throw Error('euro-data.json neexistuje.');location.reload()});
 action('gh-push',async()=>{if(sha===null){let latest=await remote();if(latest)throw Error('Společný JSON už existuje. Nejdříve načti společnou verzi.')}await push();notice('Společná data uložena.')});
 action('gh-disconnect',async()=>{cfg={owner:'jerry00769',repo:'Eurojackpot',path:'euro-data.json'};sha=null;conflict=false;sessionStorage.removeItem('euro_gh_token');localStorage.removeItem(CFG);document.getElementById('gh-token').value='';syncStatus('odpojeno');notice('GitHub přístup odpojen.')});
-for(let [id,parser,field] of [['import-history',parseHistory,'history'],['import-bets',parseBets,'bets']])document.getElementById(id).onchange=async e=>{try{let file=e.target.files[0];if(!file)return;let rows=parser(await file.text());if(confirm(`Nahradit ${field==='history'?'historii losování':'sázky'} (${rows.length} záznamů)?`)){data[field]=rows;persist();location.reload()}}catch(err){notice(err.message,'error')}};
+for(let [id,parser,field] of [['import-history',parseHistory,'history'],['import-bets',parseBets,'bets']])document.getElementById(id).onchange=async e=>{try{let file=e.target.files[0];if(!file)return;let rows=parser(await file.text());if(confirm(`Nahradit ${field==='history'?'historii losování':'sázky'} (${rows.length} záznamů)?`)){if(field==='bets')restoreImportedBets(rows);else data[field]=rows;persist();location.reload()}}catch(err){notice(err.message,'error')}};
 if(location.protocol==='http:' && location.hostname==='127.0.0.1' && location.port==='8765'){
  document.getElementById('local-csv-folder').style.display='none';
  localCsvStatus('Místní CSV: automatický zápis přes lokální server zapnut.');
 }else if(location.protocol==='file:'){
  localCsvStatus('Místní CSV: pro automatický zápis spusť SPUSTIT_WEB2.cmd (neotvírej index.html přímo).');
 }
-action('local-csv-folder',selectLocalCsvDirectory);action('export-history',()=>download('eurojackpot.csv',fmtHistory()));action('export-bets',()=>download('vsazene_kombinace.csv',fmtBets()));action('export-predictions',()=>download('euro_predikce.csv',fmtPredictions()));action('export-json',()=>download('euro-zaloha.json',JSON.stringify(data,null,2)));document.getElementById('import-json').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());validateData(d);if(confirm('Přepsat místní data zálohou?')){data=d;persist();location.reload()}}catch(err){notice(err.message,'error')}}}
+action('local-csv-folder',selectLocalCsvDirectory);action('export-history',()=>download('eurojackpot.csv',fmtHistory()));action('export-bets',()=>download('vsazene_kombinace.csv',fmtBets()));action('export-predictions',()=>download('euro_predikce.csv',fmtPredictions()));action('export-json',()=>download('euro-zaloha.json',JSON.stringify(data,null,2)));document.getElementById('import-json').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());validateData(d);if(confirm('Přepsat místní data zálohou?')){data={...d,deletedBets:{...(data.deletedBets||{}),...(d.deletedBets||{})}};restoreImportedBets(d.bets);persist();location.reload()}}catch(err){notice(err.message,'error')}}}
 document.addEventListener('DOMContentLoaded',async()=>{setup();await ready;try{let n=await refreshHistory();if(n)console.info('Nových tahů:',n)}catch(e){warn(e.message)}if(publicConfig()){try{let ok=await pull();if(ok){await refreshHistory().catch(()=>0);if(typeof loadPredictions==='function')loadPredictions();if(typeof loadStakedHistory==='function')loadStakedHistory()}}catch(e){warn(e.message)}}
  // Automatická bilance při spuštění bez nutnosti otevřít Nastavení.
  refreshEuroFinanceAuto();
