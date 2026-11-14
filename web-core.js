@@ -1,6 +1,6 @@
 /* Eurojackpot AI WEB – samostatná aplikace, statistický hybrid dle Python předlohy. */
 (()=>{'use strict';
-const nativeFetch=window.fetch.bind(window), KEY='euro_web_v1',DIRTY='euro_web_dirty_v1',CFG='euro_github_config';
+const nativeFetch=window.fetch.bind(window), KEY='euro_web_v1',DIRTY='euro_web_dirty_v1',CFG='euro_github_config', REMEMBER_TOKEN='euro_gh_token_remembered';
 const csv=(s,sep=';')=>s.replace(/^\uFEFF/,'').trim().split(/\r?\n/).map(x=>x.split(sep));
 const date=x=>{let s=String(x||'').trim(),m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);return m?`${m[3]}-${m[2]}-${m[1]}`:s.slice(0,10)};
 const parseNums=x=>(Array.isArray(x)?x:String(x||'').split(',')).map(Number);
@@ -8,8 +8,8 @@ const valid=x=>{let a=parseNums(x);return a.length===7&&new Set(a.slice(0,5)).si
 const def=()=>({history:[],bets:[],predictions:[],version:1});
 let data;try{data=JSON.parse(localStorage.getItem(KEY)||'null')||def()}catch{data=def()}
 let cfg;try{cfg=JSON.parse(sessionStorage.getItem(CFG)||localStorage.getItem(CFG)||'{}')}catch{cfg={}}
- cfg={owner:cfg.owner||'jerry00769',repo:cfg.repo||'Eurojackpot',token:sessionStorage.getItem('euro_gh_token')||'',path:'euro-data.json'};
- // Remove legacy persistent credentials; tokens live in this tab only.
+ cfg={owner:cfg.owner||'jerry00769',repo:cfg.repo||'Eurojackpot',token:sessionStorage.getItem('euro_gh_token')||localStorage.getItem(REMEMBER_TOKEN)||'',path:'euro-data.json'};
+ // Legacy configuration is removed; persistent token is allowed only by explicit opt-in.
  localStorage.removeItem(CFG);sessionStorage.removeItem(CFG);
 let sha=null,dirty=localStorage.getItem(DIRTY)==='1',saving=false,saveTimer=null,conflict=false;
  let retryTimer=null, polling=false, revision=0, lastPublicDataRefresh=0;
@@ -55,7 +55,7 @@ async function selectLocalCsvDirectory(){
  queueLocalCsvWrite();await localCsvQueue;
 }
 const localSave=()=>localStorage.setItem(KEY,JSON.stringify(data));
-const persist=()=>{revision++;dirty=true;localStorage.setItem(DIRTY,'1');localSave();queueLocalCsvWrite();syncStatus(config()?'místní změny čekají na odeslání':'Změny jsou jen v tomto zařízení. Pro odeslání na GitHub nastav klíč.',config()?'info':'error');if(config()){clearTimeout(saveTimer);saveTimer=setTimeout(()=>autoSave().catch(e=>warn(e.message)),1400)}};
+const persist=()=>{revision++;dirty=true;localStorage.setItem(DIRTY,'1');localSave();queueLocalCsvWrite();syncStatus(config()?'místní změny čekají na odeslání':'Změny jsou jen v tomto zařízení. Pro odeslání na GitHub nastav klíč.',config()?'info':'error');if(config()){clearTimeout(saveTimer);saveTimer=setTimeout(()=>autoSave().catch(e=>warn(e.message)),350)}};
 const syncStatus=(m,kind='info')=>{
  const color=kind==='error'?'#ffbf69':kind==='ok'?'#9be3a5':'#8bb7f0';
  let el=document.getElementById('euro-sync-status');
@@ -524,7 +524,7 @@ function readOnlyMerge(d){
  validateData(d);
  // Public reading must never silently publish private bets.
  data=mergeShared(d,data);evaluate(true);localSave();storeEuroFinanceSnapshot();
- syncStatus('veřejná data načtena · osobní sázky zůstávají místní','ok');
+ syncStatus(dirty?'Místní změny nejsou odeslány · pro zápis nastav klíč':'Společná data načtena (jen čtení) · pro zápis nastav klíč',dirty?'error':'info');
 }
 async function pull(force=false){
  let j=await remote();if(!j){sha=null;return false}
@@ -536,7 +536,7 @@ async function pull(force=false){
  const changed=JSON.stringify(combined)!==JSON.stringify(d);
  data=combined;sha=j.sha;evaluate(true);localSave();storeEuroFinanceSnapshot();
  dirty=changed;localStorage[changed?'setItem':'removeItem'](DIRTY,'1');
- syncStatus(changed?'sázky sloučeny · čekají na uložení':'data synchronizována','ok');
+ syncStatus(changed?'Sloučené změny odesílám na GitHub…':'Data synchronizována',changed?'info':'ok');
  if(changed)setTimeout(()=>autoSave().catch(e=>warn(e.message)),100);
  return true;
 }
@@ -555,31 +555,31 @@ async function push(){
    data=mergeShared(combined,data);sha=latest.sha;
    await writeCsvMirror();
    if(revision===startRevision){dirty=false;localStorage.removeItem(DIRTY)}
-   localSave();syncStatus('data synchronizována','ok');return;
+   localSave();syncStatus(dirty?'Nové změny čekají na odeslání':'Data synchronizována',dirty?'info':'ok');return;
   }
   try{
    const j=await remote('PUT',{message:'Eurojackpot AI: synchronizace sázek',content:encode(snapshot),...(latest?{sha:latest.sha}:{})});
    sha=j.content.sha;data=mergeShared(combined,data);evaluate(true);localSave();conflict=false;await writeCsvMirror();
-   if(revision===startRevision){dirty=false;localStorage.removeItem(DIRTY);syncStatus('sázky bezpečně sloučeny a uloženy','ok')}
-   else{dirty=true;localStorage.setItem(DIRTY,'1');clearTimeout(saveTimer);saveTimer=setTimeout(()=>autoSave().catch(e=>warn(e.message)),1400)}
+   if(revision===startRevision){dirty=false;localStorage.removeItem(DIRTY);syncStatus('Data synchronizována · GitHub potvrdil zápis','ok')}
+   else{dirty=true;localStorage.setItem(DIRTY,'1');clearTimeout(saveTimer);saveTimer=setTimeout(()=>autoSave().catch(e=>warn(e.message)),350)}
    return;
   }catch(e){if(!e.githubConflict||attempt===2)throw e}
  }
 }
 async function autoSave(){
  if(!config()||saving||!dirty||conflict||!navigator.onLine)return;
- saving=true;syncStatus('slučuji a odesílám změny…');
+ saving=true;syncStatus('Odesílám změny na GitHub…');
  try{await push()}catch(e){if(e.githubConflict)syncStatus('souběžná změna na GitHubu · zkusím znovu','error');throw e}
  finally{saving=false}
 }
 async function periodicSync(){
  if(polling||!publicConfig()||!navigator.onLine)return;
- polling=true;syncStatus('kontroluji společná data…');
+ polling=true;if(!dirty)syncStatus('Kontroluji společná data…');
  try{
   if(dirty&&config()){if(!conflict)await autoSave();return}
   let latest=await remote();
   if(!latest)return;
-  if(latest.sha===sha){syncStatus(dirty?(config()?'místní změny čekají na odeslání':'Změny jsou jen v tomto zařízení. Pro odeslání na GitHub nastav klíč.'):(config()?'data synchronizována':'Veřejná data aktuální · zápis vyžaduje klíč'),dirty?(config()?'info':'error'):'ok');return;}
+  if(latest.sha===sha){syncStatus(dirty?(config()?'místní změny čekají na odeslání':'Změny jsou jen v tomto zařízení. Pro odeslání na GitHub nastav klíč.'):(config()?'Data synchronizována':'Společná data aktuální (jen čtení) · pro zápis nastav klíč'),dirty?(config()?'info':'error'):'ok');return;}
   // Nikdy nepřepisovat pracovní změny; stav se znovu kontroluje po síťovém požadavku.
   if(dirty&&config())return;
   let d=JSON.parse(decode(latest.content));validateData(d);
@@ -592,7 +592,7 @@ async function periodicSync(){
   mergeHistory(publicHistory);
   const evaluated=evaluate(true);
   localSave();storeEuroFinanceSnapshot();
-  syncStatus(evaluated?'společná data načtena a sázky vyhodnoceny':'načteny změny z GitHubu','ok');
+  syncStatus(dirty?'Místní změny čekají na odeslání':(config()?'Data synchronizována · změny převzaty z GitHubu':'Společná data načtena (jen čtení)'),dirty?'info':(config()?'ok':'info'));
   if(typeof loadPredictions==='function')await loadPredictions();
   if(typeof loadStakedHistory==='function')await loadStakedHistory();
   if(typeof checkEvaluationStatus==='function')checkEvaluationStatus();
@@ -621,11 +621,11 @@ const ready=seed();window.fetch=(url,opt)=>String(url).includes('/app/')?handle(
 function download(name,content){let a=document.createElement('a'),blob=new Blob([content],{type:'text/plain;charset=utf-8'});a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
 const fmtHistory=()=>['datum;rok;1;2;3;4;5;euro1;euro2',...data.history.slice().reverse().map(h=>[h.date.split('-').reverse().join('.'),h.date.slice(0,4),...h.numbers].join(';'))].join('\r\n')+'\r\n';
 const fmtBets=()=>['datum;kombinace;euro;castka;metoda;vysledek;shoda_hlavni;shoda_euro',...sortedBets().map(b=>{let a=valid(b.Kombinace)||[];return [date(b.Datum_sazky).split('-').reverse().join('.'),a.slice(0,5).join(','),a.slice(5).join(','),b.Cena||0,b.Metoda||'Eurojackpot AI WEB',String(b.Vyhodnoceni||'').startsWith('Výhra')?'vyhra':String(b.Vyhodnoceni||'').toLowerCase()==='prohra'?'prohra':'',...(b.Shodna_cisla||'').split(' | ').concat(['','']).slice(0,2)].join(';')})].join('\r\n')+'\r\n';
-function setup(){let sec=document.createElement('details');sec.className='section renta-settings';sec.innerHTML=`<summary style="cursor:pointer;color:#8bb7f0;font-weight:700">⚙ Nastavení · GitHub · import / export</summary><div class="section-header"><span class="section-title">Eurojackpot – synchronizace a data</span></div><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><input id="gh-owner" placeholder="GitHub uživatel" style="width:160px"><input id="gh-repo" placeholder="Repozitář" style="width:160px"><input id="gh-token" type="password" placeholder="GitHub token" style="width:220px"><button class="blue" id="gh-connect">Nastavit přístup</button><button class="blue" id="gh-pull">Načíst společnou</button><button class="green" id="gh-push">Uložit společnou</button><button class="red" id="gh-disconnect">Odpojit klíč</button></div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center"><label>Import historie <input id="import-history" type="file" accept=".csv"></label><label>Import sázek <input id="import-bets" type="file" accept=".csv"></label><button class="blue" id="export-history">Export historie CSV</button><button class="blue" id="export-bets">Export sázek CSV</button><button class="blue" id="export-predictions">Export predikcí CSV</button><button class="green" id="local-csv-folder">Připojit místní CSV složku</button><span id="euro-local-csv-status" style="font-size:12px;color:#8bb7f0">Místní CSV: nepřipojeno (po otevření WEB2 je nutné povolení znovu).</span><button class="blue" id="export-json">Záloha JSON</button><button class="blue" id="smart-audit">Bilance sázek</button><label style="display:flex;align-items:center;gap:6px;color:#8bb7f0;font-size:13px"><input type="checkbox" id="euro-smart-diagnostics"> Podrobný test SMART</label><label>Obnovit JSON <input id="import-json" type="file" accept=".json"></label></div><p style="font-size:12px;color:#8bb7f0">Společný JSON i oba CSV se čtou z GitHubu; při zápisu s tokenem se oba CSV aktualizují. Na novém zařízení se nejprve načte společná verze. Při rozdílech se sázky sloučí; souběžný zápis se bezpečně opakuje. Veřejná data se čtou bez tokenu. Token pro zápis zůstává pouze v aktuální kartě (sessionStorage); na veřejném zařízení jej nezadávej.</p><p id="euro-finance-auto-status" role="status" aria-live="polite" style="color:#8bb7f0;font-size:12px">Bilance se aktualizuje automaticky na pozadí.</p><p id="euro-sync-status" role="status" aria-live="polite" style="color:#8bb7f0;font-size:13px"></p><p id="renta-sync-warning" style="color:#ffbf69;font-size:13px"></p>`;document.querySelector('.content-sections')?.prepend(sec);document.getElementById('euro-smart-diagnostics').checked=localStorage.getItem(EURO_DIAG_KEY)==='1';document.getElementById('euro-smart-diagnostics').onchange=e=>localStorage.setItem(EURO_DIAG_KEY,e.target.checked?'1':'0');document.getElementById('smart-audit').onclick=async()=>{const btn=document.getElementById('smart-audit');btn.disabled=true;try{await refreshEuroFinanceAuto();showFinanceDialog(smartFinancialAudit())}finally{btn.disabled=false}};document.getElementById('gh-owner').value=cfg.owner||'';document.getElementById('gh-repo').value=cfg.repo||'';syncStatus(config()?(dirty?'místní změny čekají na synchronizaci':'čtení a zápis GitHub'):('GitHub: pouze čtení. Pro odesílání změn nastav klíč.'),'info');const notice=(m,t='success')=>typeof displayStatusMessage==='function'?displayStatusMessage(m,t):alert(m);const action=(id,fn)=>document.getElementById(id).onclick=async()=>{try{await fn()}catch(e){notice(e.message,'error')}};
-action('gh-connect',async()=>{let owner=document.getElementById('gh-owner').value.trim(),repo=document.getElementById('gh-repo').value.trim(),entered=document.getElementById('gh-token').value.trim();cfg={owner,repo,token:entered||(owner===cfg.owner&&repo===cfg.repo?cfg.token:''),path:'euro-data.json'};if(!owner||!repo)throw Error('Vyplň GitHub uživatele a repozitář.');sessionStorage.setItem('euro_gh_token',cfg.token);syncStatus('připojuji se…');sha=null;conflict=false;if(dirty){notice('Přístup nastaven. Místní sázky budou bezpečně sloučeny s GitHubem.','success')}let ok=await pull();if(ok)location.reload();else notice('Přístup nastaven. Společný JSON zatím neexistuje.')});
+function setup(){let sec=document.createElement('details');sec.className='section renta-settings';sec.innerHTML=`<summary style="cursor:pointer;color:#8bb7f0;font-weight:700">⚙ Nastavení · GitHub · import / export</summary><div class="section-header"><span class="section-title">Eurojackpot – synchronizace a data</span></div><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><input id="gh-owner" placeholder="GitHub uživatel" style="width:160px"><input id="gh-repo" placeholder="Repozitář" style="width:160px"><input id="gh-token" type="password" placeholder="GitHub token" style="width:220px"><label style="display:flex;align-items:center;gap:5px;color:#8bb7f0;font-size:12px"><input type="checkbox" id="gh-remember"> Pamatovat klíč na tomto zařízení</label><button class="blue" id="gh-connect">Nastavit přístup</button><button class="blue" id="gh-pull">Načíst společnou</button><button class="green" id="gh-push">Uložit společnou</button><button class="red" id="gh-disconnect">Odpojit klíč</button></div><div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center"><label>Import historie <input id="import-history" type="file" accept=".csv"></label><label>Import sázek <input id="import-bets" type="file" accept=".csv"></label><button class="blue" id="export-history">Export historie CSV</button><button class="blue" id="export-bets">Export sázek CSV</button><button class="blue" id="export-predictions">Export predikcí CSV</button><button class="green" id="local-csv-folder">Připojit místní CSV složku</button><span id="euro-local-csv-status" style="font-size:12px;color:#8bb7f0">Místní CSV: nepřipojeno (po otevření WEB2 je nutné povolení znovu).</span><button class="blue" id="export-json">Záloha JSON</button><button class="blue" id="smart-audit">Bilance sázek</button><label style="display:flex;align-items:center;gap:6px;color:#8bb7f0;font-size:13px"><input type="checkbox" id="euro-smart-diagnostics"> Podrobný test SMART</label><label>Obnovit JSON <input id="import-json" type="file" accept=".json"></label></div><p style="font-size:12px;color:#8bb7f0">Společný JSON i oba CSV se čtou z GitHubu; při zápisu s tokenem se oba CSV aktualizují. Na novém zařízení se nejprve načte společná verze. Při rozdílech se sázky sloučí; souběžný zápis se bezpečně opakuje. Veřejná data se čtou bez tokenu. Klíč se běžně ukládá jen pro relaci; volitelně jej lze zapamatovat v tomto prohlížeči. Trvalé uložení není vhodné na sdíleném zařízení.</p><p id="euro-finance-auto-status" role="status" aria-live="polite" style="color:#8bb7f0;font-size:12px">Bilance se aktualizuje automaticky na pozadí.</p><p id="euro-sync-status" role="status" aria-live="polite" style="color:#8bb7f0;font-size:13px"></p><p id="renta-sync-warning" style="color:#ffbf69;font-size:13px"></p>`;document.querySelector('.content-sections')?.prepend(sec);document.getElementById('euro-smart-diagnostics').checked=localStorage.getItem(EURO_DIAG_KEY)==='1';document.getElementById('euro-smart-diagnostics').onchange=e=>localStorage.setItem(EURO_DIAG_KEY,e.target.checked?'1':'0');document.getElementById('smart-audit').onclick=async()=>{const btn=document.getElementById('smart-audit');btn.disabled=true;try{await refreshEuroFinanceAuto();showFinanceDialog(smartFinancialAudit())}finally{btn.disabled=false}};document.getElementById('gh-owner').value=cfg.owner||'';document.getElementById('gh-repo').value=cfg.repo||'';document.getElementById('gh-remember').checked=!!localStorage.getItem(REMEMBER_TOKEN);syncStatus(config()?(dirty?'místní změny čekají na synchronizaci':'GitHub připojen · ověřuji společná data'):('Pouze čtení · pro odesílání změn nastav klíč'),'info');const notice=(m,t='success')=>typeof displayStatusMessage==='function'?displayStatusMessage(m,t):alert(m);const action=(id,fn)=>document.getElementById(id).onclick=async()=>{try{await fn()}catch(e){notice(e.message,'error')}};
+action('gh-connect',async()=>{let owner=document.getElementById('gh-owner').value.trim(),repo=document.getElementById('gh-repo').value.trim(),entered=document.getElementById('gh-token').value.trim();cfg={owner,repo,token:entered||(owner===cfg.owner&&repo===cfg.repo?cfg.token:''),path:'euro-data.json'};if(!owner||!repo)throw Error('Vyplň GitHub uživatele a repozitář.');sessionStorage.setItem('euro_gh_token',cfg.token);if(document.getElementById('gh-remember').checked&&cfg.token)localStorage.setItem(REMEMBER_TOKEN,cfg.token);else localStorage.removeItem(REMEMBER_TOKEN);syncStatus('připojuji se…');sha=null;conflict=false;if(dirty){notice('Přístup nastaven. Místní sázky budou bezpečně sloučeny s GitHubem.','success')}let ok=await pull();if(ok)location.reload();else notice('Přístup nastaven. Společný JSON zatím neexistuje.')});
 action('gh-pull',async()=>{if(!confirm('Načíst a sloučit společná data z GitHubu bez smazání místních sázek?'))return;let ok=await pull(true);conflict=false;if(!ok)throw Error('euro-data.json neexistuje.');location.reload()});
 action('gh-push',async()=>{if(sha===null){let latest=await remote();if(latest)throw Error('Společný JSON už existuje. Nejdříve načti společnou verzi.')}await push();notice('Společná data uložena.')});
-action('gh-disconnect',async()=>{cfg={owner:'jerry00769',repo:'Eurojackpot',path:'euro-data.json'};sha=null;conflict=false;sessionStorage.removeItem('euro_gh_token');localStorage.removeItem(CFG);document.getElementById('gh-token').value='';syncStatus('odpojeno');notice('GitHub přístup odpojen.')});
+action('gh-disconnect',async()=>{cfg={owner:'jerry00769',repo:'Eurojackpot',path:'euro-data.json'};sha=null;conflict=false;sessionStorage.removeItem('euro_gh_token');localStorage.removeItem(REMEMBER_TOKEN);localStorage.removeItem(CFG);document.getElementById('gh-token').value='';syncStatus('odpojeno');notice('GitHub přístup odpojen.')});
 for(let [id,parser,field] of [['import-history',parseHistory,'history'],['import-bets',parseBets,'bets']])document.getElementById(id).onchange=async e=>{try{let file=e.target.files[0];if(!file)return;let rows=parser(await file.text());if(confirm(`Nahradit ${field==='history'?'historii losování':'sázky'} (${rows.length} záznamů)?`)){if(field==='bets')restoreImportedBets(rows);else data[field]=rows;persist();location.reload()}}catch(err){notice(err.message,'error')}};
 if(location.protocol==='http:' && location.hostname==='127.0.0.1' && location.port==='8765'){
  document.getElementById('local-csv-folder').style.display='none';
