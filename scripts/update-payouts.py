@@ -60,6 +60,9 @@ def parse(html):
 
 
 def existing():
+    if not OUTPUT.exists():
+        print('CZK archive absent: starting with empty verified cache.')
+        return {}
     raw = OUTPUT.read_text(encoding='utf-8')
     match = re.search(r'window\.EURO_PAYOUTS\s*=\s*(\{.*\})\s*;', raw, re.S)
     if not match:
