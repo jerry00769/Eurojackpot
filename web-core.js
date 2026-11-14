@@ -210,11 +210,11 @@ function smartGenerate(){
  // Defensive validation before overwriting predictions or marking data dirty.
  if(final.length!==6||new Set(final.flatMap(x=>x.slice(0,5))).size!==30||new Set(final.flatMap(x=>x.slice(5))).size!==12)
   throw Error('Kontrola rozložení šesti sloupců selhala.');
- data.predictions=final;persist();
+ data.predictions=final;data.predictionsUpdatedAt=Date.now();persist();
  return {checked:model.checked,main:model.main,euro:model.euro,mainCoverage:30,euroCoverage:12};
 }
 
-function generate(){if(!data.history.length)throw Error('Chybí historie Eurojackpotu.');let s=buildStats(),candidates=[],seen=new Set();for(let i=0;i<30000;i++){let a=pick(s.main,5,50,.25),e=pick(s.adj,2,12,.20),key=[...a,...e].join(',');if(seen.has(key))continue;seen.add(key);candidates.push({a,e,score:scoreLine(a,e,s)})}candidates.sort((a,b)=>b.score-a.score);candidates=candidates.slice(0,6000);let final=[],usage=Array(51).fill(0),eu=Array(13).fill(0),ep=new Set();for(let round=0;round<6;round++){let best=null,bestScore=-Infinity;for(let c of candidates){if(c.a.some(n=>usage[n]>=3)||c.e.some(n=>eu[n]>=3)||ep.has(k2(...c.e)))continue;if(final.some(f=>c.a.filter(n=>f.slice(0,5).includes(n)).length>2))continue;let overlap=final.length?final.reduce((z,f)=>z+c.a.filter(n=>f.slice(0,5).includes(n)).length,0)/final.length:0;let repeated=c.a.reduce((z,n)=>z+usage[n],0),er=c.e.reduce((z,n)=>z+eu[n],0),bonus=final.length?Math.max(0,5-repeated)+(overlap<=1?7:overlap<=1.5?4:overlap<=2?1:-4)+Math.max(0,2-er*.5):0,score=c.score+bonus;if(score>bestScore){bestScore=score;best=c}}if(!best)throw Error('Nelze sestavit všech šest sloupců při zadaných omezeních.');final.push([...best.a,...best.e]);best.a.forEach(n=>usage[n]++);best.e.forEach(n=>eu[n]++);ep.add(k2(...best.e))}data.predictions=final;persist();return s}
+function generate(){if(!data.history.length)throw Error('Chybí historie Eurojackpotu.');let s=buildStats(),candidates=[],seen=new Set();for(let i=0;i<30000;i++){let a=pick(s.main,5,50,.25),e=pick(s.adj,2,12,.20),key=[...a,...e].join(',');if(seen.has(key))continue;seen.add(key);candidates.push({a,e,score:scoreLine(a,e,s)})}candidates.sort((a,b)=>b.score-a.score);candidates=candidates.slice(0,6000);let final=[],usage=Array(51).fill(0),eu=Array(13).fill(0),ep=new Set();for(let round=0;round<6;round++){let best=null,bestScore=-Infinity;for(let c of candidates){if(c.a.some(n=>usage[n]>=3)||c.e.some(n=>eu[n]>=3)||ep.has(k2(...c.e)))continue;if(final.some(f=>c.a.filter(n=>f.slice(0,5).includes(n)).length>2))continue;let overlap=final.length?final.reduce((z,f)=>z+c.a.filter(n=>f.slice(0,5).includes(n)).length,0)/final.length:0;let repeated=c.a.reduce((z,n)=>z+usage[n],0),er=c.e.reduce((z,n)=>z+eu[n],0),bonus=final.length?Math.max(0,5-repeated)+(overlap<=1?7:overlap<=1.5?4:overlap<=2?1:-4)+Math.max(0,2-er*.5):0,score=c.score+bonus;if(score>bestScore){bestScore=score;best=c}}if(!best)throw Error('Nelze sestavit všech šest sloupců při zadaných omezeních.');final.push([...best.a,...best.e]);best.a.forEach(n=>usage[n]++);best.e.forEach(n=>eu[n]++);ep.add(k2(...best.e))}data.predictions=final;data.predictionsUpdatedAt=Date.now();persist();return s}
 const PRIZES={'5,2':1,'5,1':2,'5,0':3,'4,2':4,'4,1':5,'3,2':6,'4,0':7,'2,2':8,'3,1':9,'3,0':10,'1,2':11,'2,1':12};
 
 // Veřejný otevřený archiv (CC BY 4.0); výplaty v EUR, nikoliv Kč.
@@ -510,8 +510,15 @@ function mergeShared(remoteData, localData){
  const draws=new Map();
  for(const h of remoteData.history)draws.set(date(h.date),h);
  for(const h of localData.history)draws.set(date(h.date),h);
- const predictions=localData.predictions.length?localData.predictions:remoteData.predictions;
- return {...remoteData,...localData,deletedBets,bets:[...bets.values()],history:[...draws.values()].sort((a,b)=>a.date.localeCompare(b.date)),predictions};
+ // Predikce jsou jedna sdílená sada, nikoliv slučovaný seznam.
+ // Přednost má poslední výslovná úprava; staré lokální kopie bez času
+ // nesmějí přepsat GitHub. U starých dat bez času vyhrává GitHub.
+ const remoteStamp=Number(remoteData.predictionsUpdatedAt)||0;
+ const localStamp=Number(localData.predictionsUpdatedAt)||0;
+ const localWins=localStamp>remoteStamp && localData.predictions.length>0;
+ const predictions=localWins?localData.predictions:remoteData.predictions;
+ const predictionsUpdatedAt=localWins?localStamp:remoteStamp;
+ return {...remoteData,...localData,deletedBets,bets:[...bets.values()],history:[...draws.values()].sort((a,b)=>a.date.localeCompare(b.date)),predictions,predictionsUpdatedAt};
 }
 function readOnlyMerge(d){
  validateData(d);
@@ -522,7 +529,7 @@ function readOnlyMerge(d){
 async function pull(force=false){
  let j=await remote();if(!j){sha=null;return false}
  let d=JSON.parse(decode(j.content));validateData(d);
- try{const csvMirror=await readCsvMirror();d=mergeShared({...def(),bets:csvMirror.bets,predictions:csvMirror.predictions},d)}catch(e){console.warn('CSV záloha nebyla načtena:',e)}
+ try{const csvMirror=await readCsvMirror();d=mergeShared({...def(),bets:csvMirror.bets,predictions:d.predictions,predictionsUpdatedAt:d.predictionsUpdatedAt},d)}catch(e){console.warn('CSV záloha nebyla načtena:',e)}
  if(!config()){readOnlyMerge(d);sha=j.sha;return true}
  // A connected device must not lose bets recorded before the token was entered.
  const combined=mergeShared(d,data);
@@ -572,11 +579,11 @@ async function periodicSync(){
   if(dirty&&config()){if(!conflict)await autoSave();return}
   let latest=await remote();
   if(!latest)return;
-  if(latest.sha===sha){syncStatus(config()?'data synchronizována':'veřejná data aktuální · sázky místní','ok');return;}
+  if(latest.sha===sha){syncStatus(dirty?'místní změny čekají na odeslání':(config()?'data synchronizována':'veřejná data aktuální · sázky místní'),dirty?'info':'ok');return;}
   // Nikdy nepřepisovat pracovní změny; stav se znovu kontroluje po síťovém požadavku.
   if(dirty&&config())return;
   let d=JSON.parse(decode(latest.content));validateData(d);
-  try{const csvMirror=await readCsvMirror();d=mergeShared({...def(),bets:csvMirror.bets,predictions:csvMirror.predictions},d)}catch(e){console.warn('CSV záloha nebyla načtena:',e)}
+  try{const csvMirror=await readCsvMirror();d=mergeShared({...def(),bets:csvMirror.bets,predictions:d.predictions,predictionsUpdatedAt:d.predictionsUpdatedAt},d)}catch(e){console.warn('CSV záloha nebyla načtena:',e)}
   if(dirty&&config())return;
   // Keep newer public draw history fetched from GitHub CSV; shared JSON can lag.
   const publicHistory=data.history;
@@ -593,7 +600,7 @@ async function periodicSync(){
 }
 
 function response(o,status=200){return Promise.resolve(new Response(JSON.stringify(o),{status,headers:{'Content-Type':'application/json'}}))}
-async function handle(url,opt={}){await ready;let path='/app/'+String(url).split('/app/').pop().split(/[?#]/)[0],body=opt.body?JSON.parse(opt.body):{};try{let result={status:'ok'};switch(path){case '/app/update_prediction':{let i=Number(body.index),m=body.main,e=body.euro;if(!Number.isInteger(i)||i<0||i>=data.predictions.length||!Array.isArray(m)||!Array.isArray(e)||m.length>5||e.length>2||new Set(m).size!==m.length||new Set(e).size!==e.length||!m.every(n=>Number.isInteger(n)&&n>=1&&n<=50)||!e.every(n=>Number.isInteger(n)&&n>=1&&n<=12))throw Error('Neplatná úprava čísel.');data.predictions[i]=[...m.sort((a,b)=>a-b),...e.sort((a,b)=>a-b)];persist();result={status:'ok'};break}case '/app/get_latest_predictions':result={predictions:data.predictions};break;case '/app/get_staked_history':result={status:'ok',history:sortedBets().map(({Poradi,...b})=>b)};break;case '/app/get_staked_status':result={needs_evaluation:data.bets.some(b=>drawMap().has(date(b.Datum_sazky))&&(!b.Vyhodnoceni||b.Vyhodnoceni.toLowerCase()==='nevyhodnoceno'))?'True':'False'};break;case '/app/generate_new_predictions':{let s=smartGenerate();result={status:'ok',message:localStorage.getItem(EURO_DIAG_KEY)==='1'?`SMART: 6 kombinací (30/50 + 12/12). Hlavní: ${s.main.accepted?s.main.name:"bez prokázané výhody"}; euro: ${s.euro.accepted?s.euro.name:"bez prokázané výhody"}. Kontrola: ${s.main.tested} tahů.`:"SMART: Vygenerováno 6 kombinací (30/50 + 12/12)."};break}case '/app/save_staked':{
+async function handle(url,opt={}){await ready;let path='/app/'+String(url).split('/app/').pop().split(/[?#]/)[0],body=opt.body?JSON.parse(opt.body):{};try{let result={status:'ok'};switch(path){case '/app/update_prediction':{let i=Number(body.index),m=body.main,e=body.euro;if(!Number.isInteger(i)||i<0||i>=data.predictions.length||!Array.isArray(m)||!Array.isArray(e)||m.length>5||e.length>2||new Set(m).size!==m.length||new Set(e).size!==e.length||!m.every(n=>Number.isInteger(n)&&n>=1&&n<=50)||!e.every(n=>Number.isInteger(n)&&n>=1&&n<=12))throw Error('Neplatná úprava čísel.');data.predictions[i]=[...m.sort((a,b)=>a-b),...e.sort((a,b)=>a-b)];data.predictionsUpdatedAt=Date.now();persist();result={status:'ok'};break}case '/app/get_latest_predictions':result={predictions:data.predictions};break;case '/app/get_staked_history':result={status:'ok',history:sortedBets().map(({Poradi,...b})=>b)};break;case '/app/get_staked_status':result={needs_evaluation:data.bets.some(b=>drawMap().has(date(b.Datum_sazky))&&(!b.Vyhodnoceni||b.Vyhodnoceni.toLowerCase()==='nevyhodnoceno'))?'True':'False'};break;case '/app/generate_new_predictions':{let s=smartGenerate();result={status:'ok',message:localStorage.getItem(EURO_DIAG_KEY)==='1'?`SMART: 6 kombinací (30/50 + 12/12). Hlavní: ${s.main.accepted?s.main.name:"bez prokázané výhody"}; euro: ${s.euro.accepted?s.euro.name:"bez prokázané výhody"}. Kontrola: ${s.main.tested} tahů.`:"SMART: Vygenerováno 6 kombinací (30/50 + 12/12)."};break}case '/app/save_staked':{
 let d=date(body.date),lines=body.combinations||[];
 if(!d||![2,5].includes(new Date(d+'T12:00:00').getDay())||!lines.length)throw Error('Vyber úterý nebo pátek a platné kombinace.');
 // Kanonický klíč: hlavních 5 a Euro 2 se řadí zvlášť. Pořadí čísel nehraje roli.
