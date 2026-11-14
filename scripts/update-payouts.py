@@ -19,43 +19,67 @@ RANK_RE = re.compile(r'^(\d{1,2})\.\s*pořadí', re.I)
 AMOUNT_RE = re.compile(r'^([\d\s\u00a0]+)\s*Kč', re.I)
 
 
+def _money(value):
+    value = re.sub(r'\s+', '', value.replace('\xa0', ''))
+    if value in ('-', '–', '—', ''):
+        return None
+    m = re.fullmatch(r'(\d[\d.]*)Kč', value, re.I)
+    if not m:
+        return None
+    return int(m.group(1).replace('.', ''))
+
+
 def parse(html):
+    """Extract complete, date-bound 12-rank CZK payout tables.
+
+    Read individual rank rows rather than relying on one exact HTML layout.
+    An absent amount ('-') is retained as null, never fabricated as zero.
+    """
     soup = BeautifulSoup(html, 'html.parser')
+    text = soup.get_text('\n', strip=True).replace('\u202f', ' ')
+    dates = list(DATE_RE.finditer(text))
     found = {}
-    active = None
-    prizes = {}
-    def flush():
-        if active and len(prizes) == 12 and all(i in prizes for i in range(1, 13)):
-            found[active] = {'prizes': [prizes[i] for i in range(1, 13)], 'source': URL}
-    for item in soup.find_all(string=True):
-        t = ' '.join(str(item).split())
-        m = DATE_RE.search(t)
-        if m and m.group(2).lower() in MONTHS:
-            flush()
-            try:
-                active = date(int(m.group(3)), MONTHS[m.group(2).lower()], int(m.group(1))).isoformat()
-            except ValueError:
-                active = None
-            prizes = {}
+    incomplete = 0
+    for i, match in enumerate(dates):
+        month = MONTHS.get(match.group(2).lower())
+        if not month:
             continue
-        row = item.find_parent('tr')
-        if not active or row is None:
+        try:
+            day = date(int(match.group(3)), month, int(match.group(1))).isoformat()
+        except ValueError:
             continue
-        cells = [' '.join(x.get_text(' ', strip=True).split()) for x in row.find_all(['th', 'td'])]
-        if len(cells) < 2:
+        block = text[match.end():dates[i + 1].start() if i + 1 < len(dates) else len(text)]
+        heading = re.search(r'(?:Výherní\s+pořadí|Tabulka\s+výher)', block, re.I)
+        if not heading:
             continue
-        rank = RANK_RE.match(cells[0])
-        if not rank:
-            continue
-        n = int(rank.group(1))
-        if not 1 <= n <= 12:
-            continue
-        amount = AMOUNT_RE.match(cells[1])
-        if amount:
-            prizes[n] = int(re.sub(r'\s+', '', amount.group(1)))
-        elif re.match(r'^[-–]\s*/', cells[1]):
-            prizes[n] = None
-    flush()
+        block = block[heading.end():]
+        # Each rank is a separately identified row. The source may place
+        # its amount, slash and winner count in different HTML elements.
+        markers = list(re.finditer(r'(?<!\d)(1[0-2]|[1-9])\.\s*pořadí\b', block, re.I))
+        prizes = {}
+        invalid = False
+        for j, marker in enumerate(markers):
+            rank = int(marker.group(1))
+            if rank in prizes:
+                invalid = True
+                break
+            segment = block[marker.end():markers[j + 1].start() if j + 1 < len(markers) else len(block)]
+            # Bound the row to the first winner count; reject unrelated text.
+            row = re.search(r'(?P<amount>-|[\d\s\u00a0.]+\s*Kč)\s*/\s*(?P<count>\d[\d\s\u00a0]*)\s*x\b', segment, re.I)
+            if not row:
+                invalid = True
+                break
+            raw = row.group('amount').strip()
+            amount = None if raw == '-' else _money(raw)
+            if raw != '-' and amount is None:
+                invalid = True
+                break
+            prizes[rank] = amount
+        if not invalid and set(prizes) == set(range(1, 13)):
+            found[day] = {'prizes': [prizes[n] for n in range(1, 13)], 'source': URL}
+        else:
+            incomplete += 1
+    print(f'CZK source parsed: {len(dates)} date sections, {len(found)} complete 12-rank tables, {incomplete} incomplete tables.')
     return found
 
 
@@ -80,7 +104,7 @@ def main():
         print(f'CZ source unavailable: {e}. Existing verified payout data preserved.')
         return
     if not new:
-        print('No complete CZK prize tables recognized; existing data preserved.')
+        print('WARNING: No complete CZK prize tables recognized; existing data preserved. Check source HTML/layout.')
         return
     added = 0
     conflicts = 0
