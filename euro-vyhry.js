@@ -356,5 +356,22 @@ window.EURO_PAYOUTS={
       241
     ],
     "source": "https://vyhraj.cz/loterie/eurojackpot/archiv-vysledku/"
+  },
+  "2026-11-17": {
+    "prizes": [
+      937393350,
+      3888571,
+      1012139,
+      114227,
+      4370,
+      3622,
+      1360,
+      691,
+      395,
+      337,
+      337,
+      239
+    ],
+    "source": "https://vyhraj.cz/loterie/eurojackpot/archiv-vysledku/"
   }
 };
